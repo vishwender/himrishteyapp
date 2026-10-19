@@ -3,6 +3,7 @@
  */
 
 import React from 'react';
+import {test} from '@jest/globals';
 import ReactTestRenderer from 'react-test-renderer';
 import App from '../App';
 
