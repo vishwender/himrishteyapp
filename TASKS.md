@@ -74,6 +74,15 @@ Snapshot: 2026-10-16. `[x]` means the stated activity has evidence; `[ ]` means 
 
 ## Verification ledger
 
+### T3.1 / T5.1 member profile error fix — 2026-10-21
+
+- Cause: empty `src/api/shortlistApi.js` exported none of the functions called by the profile screen. The synchronous undefined-function error escaped status loading and replaced the loaded profile with an error.
+- Added explicit unavailable shortlist operations pending a confirmed backend contract; no endpoints or successful mutations invented. Wrapped status calls in independent promise callbacks so synchronous failures also remain local to the affected action.
+- Acceptance verified by `__tests__/MemberProfileScreen.test.jsx`: a loaded member and send-interest action remain visible when the real shortlist adapter rejects as unavailable; interest status still loads for the member ID.
+- `npm run lint`: PASS, 0 errors / 11 existing warnings. `npm test -- --runInBand`: profile regression PASS; full run FAIL because the starter App test cannot parse React Navigation's ESM export. Unrelated Jest setup left unchanged.
+- `cd android && ./gradlew assembleDebug`: PASS after authorized retry for sandbox Gradle-cache restrictions; existing native deprecation warnings remain. `git diff --check`: PASS.
+- ADB detected emulator-5554, but the current UI snapshot was not on Member Profile; live profile smoke and backend verification remain unverified. T3.1 and T5.1 remain open, including the missing shortlist contract.
+
 | Activity | Result on 2026-10-16 |
 | --- | --- |
 | Static repository/package/configuration inspection | Completed; evidence summarized in ARCHITECTURE.md |

@@ -12,11 +12,11 @@ import {
 } from '../services/authStorage';
 
 
-import {getMyProfile} from '../api/profileApi';
+import { getMyProfile } from '../api/profileApi';
 
 const AuthContext = createContext(null);
 
-export function AuthProvider({children}) {
+export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -58,13 +58,26 @@ export function AuthProvider({children}) {
     };
   }, []);
 
-const signIn = async (token, member) => {
-  const profile = await getMyProfile(token);
+  const signIn = async (token, member) => {
+    const profile = await getMyProfile(token);
 
-  await saveSession(token, member);
+    await saveSession(token, member);
 
-  setUser(profile);
-};
+    setUser(profile);
+  };
+
+  const refreshUser = async () => {
+    const token = await getSessionToken();
+
+    if (!token) {
+      throw new Error('Session expired. Please log in again.');
+    }
+
+    const profile = await getMyProfile(token);
+    setUser(profile);
+
+    return profile;
+  };
 
   const signOut = async () => {
     await clearSession();
@@ -73,7 +86,7 @@ const signIn = async (token, member) => {
 
   return (
     <AuthContext.Provider
-      value={{user, loading, signIn, signOut}}>
+      value={{ user, loading, signIn, signOut, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );
