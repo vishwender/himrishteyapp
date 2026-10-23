@@ -1,3 +1,4 @@
+import AppIcon from '../../components/AppIcon';
 
 import React, { useCallback, useState } from 'react';
 import {
@@ -185,9 +186,7 @@ export default function MembershipScreen() {
                                             ) : null}
                                         </View>
 
-                                        <Text style={styles.expandIcon}>
-                                            {expanded ? '−' : '+'}
-                                        </Text>
+                                        <AppIcon name={expanded ? 'collapse' : 'expand'} style={styles.expandIcon} />
                                     </TouchableOpacity>
 
                                     {expanded ? (

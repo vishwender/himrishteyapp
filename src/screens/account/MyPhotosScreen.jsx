@@ -1,3 +1,4 @@
+import AppIcon from '../../components/AppIcon';
 
 import React, { useState } from 'react';
 
@@ -230,7 +231,7 @@ export default function MyPhotosScreen() {
                             resizeMode="cover"
                         />
                     ) : (
-                        <Text style={styles.placeholder}>👤</Text>
+                        <AppIcon name="user" style={styles.placeholder} />
                     )}
                 </View>
 

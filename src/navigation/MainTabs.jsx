@@ -1,6 +1,6 @@
+import AppIcon from '../components/AppIcon';
 import React from 'react';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
-import {Text} from 'react-native';
 
 import HomeScreen from '../screens/home/HomeScreen';
 import SearchScreen from '../screens/search/SearchScreen';
@@ -10,11 +10,18 @@ import AccountScreen from '../screens/account/AccountScreen';
 const Tab = createBottomTabNavigator();
 
 const icons = {
-  Discover: '⌂',
-  Search: '⌕',
-  Interests: '♡',
-  Account: '◯',
+  Discover: 'home',
+  Search: 'search',
+  Interests: 'heart',
+  Account: 'user',
 };
+
+const tabIcons = Object.fromEntries(
+  Object.entries(icons).map(([route, name]) => [
+    route,
+    ({color, size}) => <AppIcon name={name} size={size} color={color} />,
+  ]),
+);
 
 export default function MainTabs() {
   return (
@@ -29,11 +36,7 @@ export default function MainTabs() {
           paddingBottom: 8,
           borderTopColor: '#F0EDF7',
         },
-        tabBarIcon: ({color}) => (
-          <Text style={{fontSize: 26, color}}>
-            {icons[route.name]}
-          </Text>
-        ),
+        tabBarIcon: tabIcons[route.name],
       })}>
       <Tab.Screen name="Discover" component={HomeScreen} />
       <Tab.Screen name="Search" component={SearchScreen} />

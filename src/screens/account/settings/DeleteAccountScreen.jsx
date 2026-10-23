@@ -1,3 +1,4 @@
+import AppIcon from '../../../components/AppIcon';
 
 import React, { useCallback, useState } from 'react';
 
@@ -371,7 +372,7 @@ export default function DeleteAccountScreen() {
                                 confirmed && styles.checkboxSelected,
                             ]}>
                             {confirmed ? (
-                                <Text style={styles.checkmark}>✓</Text>
+                                <AppIcon name="check" style={styles.checkmark} />
                             ) : null}
                         </View>
 

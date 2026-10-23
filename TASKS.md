@@ -111,3 +111,54 @@ Snapshot: 2026-10-16. `[x]` means the stated activity has evidence; `[ ]` means 
 - `adb shell uiautomator dump` confirmed the foreground app renders “Welcome to React Native”, version 0.87.1, Hermes and “Open App.jsx to get started”. Starter launch smoke PASS; product functionality and accessibility remain unverified.
 - Metro reports a dependency import fallback warning for ReactNativeFeatureFlags; bundling and rendering succeeded. Existing native build deprecation warnings remain.
 - T0.1 launch gate is now satisfied; optional TS tooling cleanup remains deferred. Metro left running for development.
+
+### T1.1 / T1.3 icon consistency — 2026-10-23
+
+- Replaced decorative text/emoji icons with the existing Lucide library in tabs, Discover, member profile, account menus, profile edit menu, photo placeholder, wallet transactions, membership expansion and visibility controls. Added shared AppIcon sizing/stroke/color handling; shortlist consistently uses bookmarks and accessible labels describe the action.
+- Acceptance: shared outline icons and consistent shortlist meaning in source. No dependencies added; existing feature work preserved.
+- Babel parsing: PASS for all 49 source JS/JSX files. Targeted ESLint checked edited icon components/screens; full `npm run lint` FAIL with 9 existing non-icon errors (duplicate wallet keys and hook dependencies), 2 warnings.
+- `npm test -- --runInBand`: FAIL at dependency parsing: existing React Navigation ESM issue and Lucide ESM now reached by MemberProfileScreen. Jest dependency transform configuration remains unresolved; no passing test claim.
+- `git diff --check`: reports a pre-existing trailing blank line in src/api/homeApi.js, outside icon edits. Android build and emulator visual/safe-area checks NOT RUN; T1.1/T1.3 remain open pending visual verification.
+
+### T2.2 / T5.2 logged-in activation lookup — 2026-10-23
+
+- Normalize direct/member/user/data session envelopes in AuthContext. Home and Member Profile now consume one context-owned canSendInterest value.
+- Preserve login active only when /profile omits that field and both responses identify the same member; explicit No/null overrides previous activation. Refresh uses the same normalization. No status copied between accounts, no endpoint/config changes, no new credential persistence.
+- `npm test -- --runInBand __tests__/sessionMember.test.js`: PASS, 11 tests covering response envelopes, missing activation, explicit denial and account isolation.
+- Targeted ESLint for session helper/context, Member Profile and new tests: PASS. Babel parsing of context and both screens: PASS.
+- Live account activation and Android smoke NOT RUN. Cold restore still requires /profile to return active; no login member metadata is persisted. Existing full-suite ESM and unrelated lint blockers remain; tasks stay open pending live verification.
+
+### T0.3 / T2.2 activation contract correction — 2026-10-23
+
+- Located the actual local API: Docker ddev-production-web maps host 32769 to /home/himrishtey/Documents/production/gallpakki.com. Read source only; no backend/database edits.
+- Verified ProfileController::memberData and AuthController login response omit active. The prior client fallback cannot fix an absent field in both responses.
+- Confirmed existing authenticated GET /api/v1/profile/visibility route and ProfileVisibilityController::visibilityData return `{success:true,data:{active:"Yes",is_active:true,is_hidden:false,...}}`; active comes directly from the authenticated member, independent of profile hiding. Uses existing Bearer token and X-App-Code header. No mutation is required.
+- getMyProfile now obtains active from GET /profile/visibility when absent from GET /profile, on login, restore and refresh. Explicit profile active takes precedence. Missing/failed activation retrieval rejects instead of silently labeling the account inactive.
+- Added profile adapter regression checks for active/inactive values, visibility independence, explicit profile status, malformed response and network failure. Live authenticated account smoke remains unverified; refresh Account to fetch the corrected session status.
+
+### T5.2 / T5.3 interest lifecycle and cross-screen verification — 2026-10-23
+
+- Added `__tests__/interestFlow.test.jsx`: 17 behavior tests render real Home/Member Profile/card components with mocked API/auth/navigation/icons and the real interest event service. No live requests or SMS notifications.
+- Initial tests reproduced missing Home-to-mounted-Profile synchronization, unconfirmed send success, and permanent local Home overrides masking server acceptance. Fixed these gaps: Profile subscribes by member ID, successful status rechecks publish updates, Home refresh reconciles authoritative results while retaining events newer than the request, and Profile only reports send success for sent=true. Fresh profile status reads also update Home.
+- Added a synchronous Profile mutation lock against duplicate taps. Status-loading responses cannot overwrite a newer event. Removed an unused Home hook dependency flagged by targeted lint.
+- Covered Profile send -> pending on Home; confirmed pending cancellation -> Send Interest on both; Home send -> mounted Profile; pending/accepted/rejected events; accepted/rejected cancellation controls disabled; unrelated-member isolation; every cached Home tab; server acceptance after refresh; in-flight refresh vs cancellation; in-flight status load vs acceptance; failed/unconfirmed mutations; duplicate send; cancellation confirmation Keep; and status recovery after timeout.
+- Updated the older MemberProfileScreen regression to mock auth/icons and explicitly reject shortlist status; it still verifies the member and interest action remain usable when shortlist fails.
+- Final targeted command: `npm test -- --runInBand __tests__/interestFlow.test.jsx __tests__/MemberProfileScreen.test.jsx __tests__/profileApi.test.js __tests__/sessionMember.test.js`: PASS, 4 suites / 34 tests.
+- Targeted ESLint of both screens and both screen-test files: PASS. Scoped `git diff --check` on the edited tracked screens/test: PASS.
+- Full `npm test -- --runInBand`: 4 suites passed / 32 tests passed at that run; starter App.test.jsx fails on existing @react-navigation/native ESM parsing. Two additional lifecycle tests subsequently passed in the final targeted run. Full `npm run lint`: FAIL, 8 unrelated errors in wallet duplicate styles and account-edit hook dependencies, 2 navigation warnings.
+- `cd android && ./gradlew assembleDebug`: PASS after approved Gradle-cache access, BUILD SUCCESSFUL, 231 tasks (38 executed / 193 up-to-date), existing deprecation warnings.
+- Read confirmed Laravel routes/controller in the local backend: numeric recipient ID for send/status, interest record ID for DELETE /interests/{id}/cancel; cancel requires pending and returns data.cancelled=true. No backend edits or account/database mutations.
+- Live two-account Android smoke remains NOT RUN: with authorized staging accounts, send from Home and inspect pending/cancel in Profile; send from Profile and check Home; accept then reject separate interests from recipient account and refresh sender Home; verify both terminal statuses prevent cancellation; verify a failed request followed by status retry. T5.2/T5.3 remain open pending staging/device evidence.
+
+### T1.3 / T5.3 Interests hook-order error — 2026-10-23
+
+- Screenshot reports "Rendered fewer hooks than expected" in InterestsScreen during development. Current on-disk screen calls all hooks before its sole component return; targeted hook lint finds no conditional-hook violation. Stale Fast Refresh hook state after source edits is the supported diagnosis, not a confirmed conditional-return bug in this version.
+- Added React Native `// @refresh reset` to remount InterestsScreen when edited and discard retained development hook state. Preserved the current list/action implementation.
+- Added two regression tests using the actual screen with mocked API/navigation focus: deferred loading -> loaded list -> Sent/Accepted/Rejected/Received -> refresh/empty, and initial request error -> Retry -> successful list. Both pass without hook-order exceptions. Targeted screen/test ESLint passes.
+- ADB found emulator-5554; force-stopped and relaunched com.himrishteyapp to reset the running JS session. Initial UI dump after relaunch contains no hook error. Interactive Interests smoke remains pending until the app finishes loading.
+- Follow-up live smoke: opened Interests on emulator-5554 after full relaunch. UI dump confirms "My Interests" and Received/Sent/Accepted/Rejected tabs, with no rendered-more/fewer-hooks or render error text. Interests navigation/render smoke PASS; no interest mutation performed.
+
+### T5.3 interest-card status copy — 2026-10-23
+
+- Corrected the line below location in InterestsScreen: status 1 shows "Interest accepted", status 2 "Interest rejected"; pending retains "Interest sent" / "Interest received" according to direction. Unknown statuses no longer claim sent/received. This applies across all tabs without changing API actions.
+- Targeted `npx eslint src/screens/interests/InterestsScreen.jsx` and existing InterestsScreen regression suite run for this presentation change; device visual check not repeated.

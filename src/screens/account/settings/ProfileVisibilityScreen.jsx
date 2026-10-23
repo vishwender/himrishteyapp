@@ -1,3 +1,4 @@
+import AppIcon from '../../../components/AppIcon';
 
 import React, { useCallback, useState } from 'react';
 
@@ -173,7 +174,7 @@ export default function ProfileVisibilityScreen() {
                     disabled={saving}
                     onPress={() => confirmVisibility(false)}>
 
-                    <Text style={styles.optionIcon}>👁️</Text>
+                    <AppIcon name="eye" style={styles.optionIcon} />
 
                     <View style={styles.optionContent}>
                         <Text style={styles.optionTitle}>
@@ -185,9 +186,7 @@ export default function ProfileVisibilityScreen() {
                         </Text>
                     </View>
 
-                    <Text style={styles.check}>
-                        {!isHidden ? '✓' : '○'}
-                    </Text>
+                    <AppIcon name={!isHidden ? 'selected' : 'circle'} style={styles.check} />
                 </TouchableOpacity>
 
                 <TouchableOpacity
@@ -198,7 +197,7 @@ export default function ProfileVisibilityScreen() {
                     disabled={saving}
                     onPress={() => confirmVisibility(true)}>
 
-                    <Text style={styles.optionIcon}>🙈</Text>
+                    <AppIcon name="hidden" style={styles.optionIcon} />
 
                     <View style={styles.optionContent}>
                         <Text style={styles.optionTitle}>
@@ -210,9 +209,7 @@ export default function ProfileVisibilityScreen() {
                         </Text>
                     </View>
 
-                    <Text style={styles.check}>
-                        {isHidden ? '✓' : '○'}
-                    </Text>
+                    <AppIcon name={isHidden ? 'selected' : 'circle'} style={styles.check} />
                 </TouchableOpacity>
             </View>
 

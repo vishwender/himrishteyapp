@@ -1,3 +1,4 @@
+import AppIcon from '../../../components/AppIcon';
 import React from 'react';
 import {
     View,
@@ -16,56 +17,56 @@ const SECTIONS = [
         id: 'basic',
         title: 'Basic Details',
         description: 'Name and contact information',
-        icon: '👤',
+        icon: 'user',
         screen: 'EditBasic',
     },
     {
         id: 'personal',
         title: 'Personal Details',
         description: 'Birth details, height and marital status',
-        icon: '📅',
+        icon: 'calendar',
         screen: 'EditPersonal',
     },
     {
         id: 'religion',
         title: 'Religion & Community',
         description: 'Religion, caste and mother tongue',
-        icon: '🪷',
+        icon: 'sparkles',
         screen: 'EditReligion',
     },
     {
         id: 'career',
         title: 'Education & Career',
         description: 'Qualifications, occupation and income',
-        icon: '🎓',
+        icon: 'education',
         screen: 'EditEducationCareer',
     },
     {
         id: 'location',
         title: 'Location',
         description: 'Country, state, city and native place',
-        icon: '📍',
+        icon: 'location',
         screen: 'EditLocation',
     },
     {
         id: 'family',
         title: 'Family Details',
         description: 'Parents and family background',
-        icon: '👨‍👩‍👧',
+        icon: 'family',
         screen: 'EditFamily',
     },
     {
         id: 'lifestyle',
         title: 'Lifestyle & About Me',
         description: 'Diet, habits and introduction',
-        icon: '🌿',
+        icon: 'leaf',
         screen: 'EditLifestyle',
     },
     {
         id: 'partner',
         title: 'Partner Preferences',
         description: 'Your preferences for a partner',
-        icon: '❤️',
+        icon: 'heart',
         screen: 'EditPartnerPreferences',
     },
 ];
@@ -134,9 +135,7 @@ export default function EditProfileScreen() {
                             onPress={() => navigation.navigate(item.screen)}>
 
                             <View style={styles.iconBox}>
-                                <Text style={styles.iconText}>
-                                    {item.icon}
-                                </Text>
+                                <AppIcon name={item.icon} style={styles.iconText} />
                             </View>
 
                             <View style={styles.itemContent}>
@@ -156,7 +155,7 @@ export default function EditProfileScreen() {
                             </View>
 
                             {available ? (
-                                <Text style={styles.chevron}>›</Text>
+                                <AppIcon name="next" style={styles.chevron} />
                             ) : null}
                         </TouchableOpacity>
                     );

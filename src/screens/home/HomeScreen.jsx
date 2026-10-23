@@ -1,442 +1,1251 @@
-
+import AppIcon from '../../components/AppIcon';
 import React, {
   useCallback,
   useEffect,
+  useMemo,
+  useRef,
   useState,
-  memo,
 } from 'react';
 
 import {
   View,
   Text,
   FlatList,
-  StyleSheet,
-  ActivityIndicator,
+  ScrollView,
   TouchableOpacity,
+  ActivityIndicator,
   RefreshControl,
+  Alert,
+  StyleSheet,
 } from 'react-native';
 
-import {useNavigation} from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 
-import {getHomeData} from '../../api/homeApi';
-import MemberCard from '../../components/MemberCard';
-import {useAuth} from '../../context/AuthContext';
+import { useFocusEffect } from '@react-navigation/native';
+
+import {
+  subscribeShortlistChanges,
+  notifyShortlistChanged,
+} from '../../services/shortlistSync';
+
+import {
+  subscribeInterestChanges,
+  notifyInterestChanged,
+} from '../../services/interestSync';
+
+import { useAuth } from '../../context/AuthContext';
+import HomeMemberCard from '../../components/home/HomeMemberCard';
+
+import {
+  getDiscoverProfiles,
+  sendHomeInterest,
+  addHomeShortlist,
+  removeHomeShortlist,
+} from '../../api/homeApi';
+
 import colors from '../../theme/colors';
 
-/*
-|--------------------------------------------------------------------------
-| Home sections
-|--------------------------------------------------------------------------
-*/
+const PAGE_SIZE = 10;
 
-const sections = [
+const TABS = [
   {
-    key: 'matching_profiles',
+    id: 'matches',
+    section: 'matches',
     title: 'Matches for You',
+    icon: 'sparkles',
   },
   {
-    key: 'recent_profiles',
+    id: 'recent',
+    section: 'recently_joined',
     title: 'Recently Joined',
+    icon: 'recent',
   },
   {
-    key: 'verified_profiles',
-    title: 'Verified Members',
+    id: 'verified',
+    section: 'verified',
+    title: 'Verified Profiles',
+    icon: 'verified',
   },
   {
-    key: 'shortlisted_profiles',
-    title: 'My Shortlist',
+    id: 'shortlisted',
+    section: 'shortlisted',
+    title: 'Shortlisted',
+    icon: 'bookmark',
   },
   {
-    key: 'profile_viewers',
-    title: 'Who Viewed My Profile',
+    id: 'viewed_you',
+    section: 'viewed_you',
+    title: 'Viewed You',
+    icon: 'eye',
   },
 ];
 
-/*
-|--------------------------------------------------------------------------
-| Horizontal profile section
-|--------------------------------------------------------------------------
-*/
+// -----------------------------------------
+// Helpers
+// -----------------------------------------
 
-const ProfileSection = memo(function ProfileSection({
-  title,
-  profiles,
-}) {
+function createTabState() {
+  return {
+    profiles: [],
+    nextCursor: null,
+    loaded: false,
+    loading: false,
+    loadingMore: false,
+    refreshing: false,
+    error: '',
+    errorMode: null,
+  };
+}
+
+function createInitialState() {
+  const result = {};
+
+  TABS.forEach(tab => {
+    result[tab.id] = createTabState();
+  });
+
+  return result;
+}
+
+function memberKey(member) {
+  return String(
+    member?.id ?? member?.profile_id ?? '',
+  );
+}
+
+function mergeProfiles(existing, incoming) {
+  const seen = new Set();
+  const result = [];
+
+  [...existing, ...incoming].forEach(member => {
+    const key = memberKey(member);
+
+    if (!key || seen.has(key)) {
+      return;
+    }
+
+    seen.add(key);
+    result.push(member);
+  });
+
+  return result;
+}
+
+function getErrorMessage(error) {
+  return (
+    error?.response?.data?.message ||
+    error?.message ||
+    'Unable to load profiles.'
+  );
+}
+
+function isSaved(value) {
+  return (
+    value === true ||
+    value === 1 ||
+    value === '1' ||
+    String(value).toLowerCase() === 'yes'
+  );
+}
+
+// -----------------------------------------
+// Home Screen
+// -----------------------------------------
+
+export default function HomeScreen() {
   const navigation = useNavigation();
+  const { user, canSendInterest } = useAuth();
 
-  const renderMember = useCallback(
-    ({item}) => (
-      <MemberCard
-        member={item}
-        onPress={() => {
-          navigation.navigate('MemberProfile', {
-            profileId: item.profile_id,
-          });
-        }}
-      />
-    ),
+  const [selectedTab, setSelectedTab] = useState('matches');
+
+  const [tabStates, setTabStates] = useState(
+    createInitialState,
+  );
+
+  const [busyMember, setBusyMember] = useState(null);
+
+  const tabStatesRef = useRef(tabStates);
+  const requestsRef = useRef({});
+  const versionsRef = useRef({});
+  const userScrolledRef = useRef(false);
+
+  // Locally confirmed shortlist changes override
+  // old API responses until the screen is remounted.
+  const shortlistOverridesRef = useRef({});
+  const interestOverridesRef = useRef({});
+
+  // Synchronous lock prevents rapid repeated actions.
+  const actionBusyRef = useRef(false);
+
+  const currentUser = user || {};
+
+  const firstName = String(
+    currentUser.full_name || '',
+  )
+    .trim()
+    .split(/\s+/)[0];
+
+  // -----------------------------------------
+  // Update tab state
+  // -----------------------------------------
+
+  const updateTab = useCallback((tabId, updater) => {
+    const current = tabStatesRef.current;
+
+    const previous =
+      current[tabId] || createTabState();
+
+    const nextTab =
+      typeof updater === 'function'
+        ? updater(previous)
+        : { ...previous, ...updater };
+
+    const next = {
+      ...current,
+      [tabId]: nextTab,
+    };
+
+    tabStatesRef.current = next;
+    setTabStates(next);
+  }, []);
+
+  // -----------------------------------------
+  // Apply confirmed shortlist state to API data
+  // -----------------------------------------
+
+  const applyShortlistOverrides = useCallback(profiles => {
+    return profiles.map(profile => {
+      const key = memberKey(profile);
+
+      if (
+        Object.prototype.hasOwnProperty.call(
+          shortlistOverridesRef.current,
+          key,
+        )
+      ) {
+        return {
+          ...profile,
+          is_shortlisted:
+            shortlistOverridesRef.current[key],
+        };
+      }
+
+      return profile;
+    });
+  }, []);
+
+  // -----------------------------------------
+  // Apply locally confirmed interest changes
+  // -----------------------------------------
+
+  const applyInterestOverrides = useCallback(profiles => {
+    return profiles.map(profile => {
+      const key = memberKey(profile);
+
+      if (
+        !Object.prototype.hasOwnProperty.call(
+          interestOverridesRef.current,
+          key,
+        )
+      ) {
+        return profile;
+      }
+
+      const override = interestOverridesRef.current[key];
+
+      return {
+        ...profile,
+        interest_status: override.interestStatus,
+        interest_id: override.interestId,
+      };
+    });
+  }, []);
+
+  // -----------------------------------------
+  // Fetch discovery profiles
+  // -----------------------------------------
+
+  const loadProfiles = useCallback(
+    async (tabId, mode = 'initial') => {
+      const current = tabStatesRef.current[tabId];
+
+      if (!current) {
+        return;
+      }
+
+      const isLoadMore = mode === 'more';
+      const isRefresh = mode === 'refresh';
+
+      if (requestsRef.current[tabId]) {
+        return;
+      }
+
+      if (isLoadMore) {
+        if (
+          !current.loaded ||
+          !current.nextCursor ||
+          current.loading ||
+          current.loadingMore ||
+          current.refreshing
+        ) {
+          return;
+        }
+      } else if (!isRefresh && current.loaded) {
+        return;
+      }
+
+      const tab = TABS.find(item => item.id === tabId);
+
+      if (!tab) {
+        return;
+      }
+
+      const interestSnapshot = {...interestOverridesRef.current};
+      const version =
+        (versionsRef.current[tabId] || 0) + 1;
+
+      versionsRef.current[tabId] = version;
+      requestsRef.current[tabId] = true;
+
+      updateTab(tabId, previous => ({
+        ...previous,
+        loading: !isLoadMore && !isRefresh,
+        loadingMore: isLoadMore,
+        refreshing: isRefresh,
+        error: '',
+        errorMode: null,
+      }));
+
+      try {
+        const result = await getDiscoverProfiles({
+          section: tab.section,
+          perPage: PAGE_SIZE,
+          cursor: isLoadMore
+            ? current.nextCursor
+            : null,
+        });
+
+        if (versionsRef.current[tabId] !== version) {
+          return;
+        }
+
+        // A response started after a local change is authoritative for members
+        // it contains. Preserve newer changes made while this request was running.
+        (result.profiles || []).forEach(profile => {
+          const key = memberKey(profile);
+          if (interestOverridesRef.current[key] === interestSnapshot[key]) {
+            delete interestOverridesRef.current[key];
+          }
+        });
+
+        const incoming = applyInterestOverrides(
+          applyShortlistOverrides(
+            Array.isArray(result.profiles)
+              ? result.profiles
+              : [],
+          ),
+        );
+
+        updateTab(tabId, previous => ({
+          ...previous,
+          profiles: isLoadMore
+            ? mergeProfiles(previous.profiles, incoming)
+            : mergeProfiles([], incoming),
+          nextCursor: result.nextCursor || null,
+          loaded: true,
+          loading: false,
+          loadingMore: false,
+          refreshing: false,
+          error: '',
+          errorMode: null,
+        }));
+
+        // Reconcile other mounted screens when a refresh discovers a server
+        // transition (for example pending -> accepted by the recipient).
+        incoming.forEach(profile => {
+          if (profile.interest_status === undefined) return;
+          const previous = current.profiles.find(item => memberKey(item) === memberKey(profile));
+          if (previous && previous.interest_status === profile.interest_status &&
+              previous.interest_id === profile.interest_id) return;
+          notifyInterestChanged(profile.id, profile.interest_status, profile.interest_id ?? null);
+        });
+      } catch (error) {
+        if (versionsRef.current[tabId] !== version) {
+          return;
+        }
+
+        updateTab(tabId, previous => ({
+          ...previous,
+          loading: false,
+          loadingMore: false,
+          refreshing: false,
+          error: getErrorMessage(error),
+          errorMode: mode,
+        }));
+      } finally {
+        requestsRef.current[tabId] = false;
+      }
+    },
+    [updateTab, applyShortlistOverrides, applyInterestOverrides],
+  );
+
+  // -----------------------------------------
+  // Load selected tab only when needed
+  // -----------------------------------------
+
+  useFocusEffect(
+    useCallback(() => {
+      const current = tabStatesRef.current[selectedTab];
+
+      if (
+        selectedTab === 'shortlisted' &&
+        current &&
+        !current.loaded &&
+        !requestsRef.current.shortlisted
+      ) {
+        loadProfiles('shortlisted');
+      }
+    }, [selectedTab, loadProfiles]),
+  );
+
+  useEffect(() => {
+    userScrolledRef.current = false;
+
+    if (!tabStatesRef.current[selectedTab]?.loaded) {
+      loadProfiles(selectedTab);
+    }
+  }, [selectedTab, loadProfiles]);
+
+  // -----------------------------------------
+  // Infinite scrolling
+  // -----------------------------------------
+
+  const loadMore = useCallback(() => {
+    if (!userScrolledRef.current) {
+      return;
+    }
+
+    const current = tabStatesRef.current[selectedTab];
+
+    if (
+      !current?.loaded ||
+      !current.nextCursor ||
+      current.loading ||
+      current.loadingMore ||
+      current.refreshing ||
+      current.error
+    ) {
+      return;
+    }
+
+    userScrolledRef.current = false;
+
+    loadProfiles(selectedTab, 'more');
+  }, [selectedTab, loadProfiles]);
+
+  // -----------------------------------------
+  // Pull to refresh
+  // -----------------------------------------
+
+  const refreshTab = useCallback(() => {
+    userScrolledRef.current = false;
+
+    loadProfiles(selectedTab, 'refresh');
+  }, [selectedTab, loadProfiles]);
+
+  // -----------------------------------------
+  // Synchronize shortlist across tabs
+  // -----------------------------------------
+
+  const synchronizeShortlist = useCallback(
+    (memberId, shortlisted) => {
+      const key = String(memberId);
+
+      shortlistOverridesRef.current[key] = shortlisted;
+
+      const current = tabStatesRef.current;
+      const next = { ...current };
+
+      TABS.forEach(tab => {
+        const previous = current[tab.id];
+
+        next[tab.id] = {
+          ...previous,
+          profiles: previous.profiles.map(profile => {
+            if (memberKey(profile) !== key) {
+              return profile;
+            }
+
+            return {
+              ...profile,
+              is_shortlisted: shortlisted,
+            };
+          }),
+        };
+      });
+
+      // The shortlist membership changed, so previously
+      // cached pagination cursors may no longer be valid.
+      //
+      // Invalidate its cached data and reload when needed.
+      next.shortlisted = {
+        ...createTabState(),
+      };
+
+      tabStatesRef.current = next;
+      setTabStates(next);
+    },
+    [],
+  );
+
+
+  const synchronizeInterest = useCallback(
+    ({ memberId, interestStatus, interestId }) => {
+      const key = String(memberId);
+
+      interestOverridesRef.current[key] = {
+        interestStatus,
+        interestId,
+      };
+
+      const current = tabStatesRef.current;
+      const next = { ...current };
+
+      TABS.forEach(tab => {
+        const previous = current[tab.id];
+
+        next[tab.id] = {
+          ...previous,
+          profiles: previous.profiles.map(profile => {
+            if (memberKey(profile) !== key) {
+              return profile;
+            }
+
+            return {
+              ...profile,
+              interest_status: interestStatus,
+              interest_id: interestId,
+            };
+          }),
+        };
+      });
+
+      tabStatesRef.current = next;
+      setTabStates(next);
+    },
+    [],
+  );
+
+
+
+  useEffect(() => {
+    const unsubscribe = subscribeShortlistChanges(
+      ({ memberId, isShortlisted }) => {
+        synchronizeShortlist(
+          memberId,
+          isShortlisted,
+        );
+      },
+    );
+
+    return unsubscribe;
+  }, [synchronizeShortlist]);
+
+  useEffect(() => {
+    return subscribeInterestChanges(
+      synchronizeInterest,
+    );
+  }, [synchronizeInterest]);
+
+  // -----------------------------------------
+  // Open member profile
+  // -----------------------------------------
+
+  const openMember = useCallback(
+    member => {
+      if (!member?.profile_id) {
+        Alert.alert(
+          'Profile Unavailable',
+          'This member does not have a valid profile ID.',
+        );
+        return;
+      }
+
+      navigation.getParent()?.navigate('MemberProfile', {
+        profileId: member.profile_id,
+      });
+    },
     [navigation],
   );
 
-  if (!profiles || profiles.length === 0) {
-    return null;
-  }
+  // -----------------------------------------
+  // Send Interest
+  // -----------------------------------------
 
-  return (
-    <View style={styles.section}>
+
+  const handleInterest = useCallback(
+    async member => {
+      const id = Number(member?.id);
+
+      if (
+        !Number.isInteger(id) ||
+        id <= 0 ||
+        actionBusyRef.current
+      ) {
+        return;
+      }
+
+      if (!canSendInterest) {
+        Alert.alert(
+          'Activate Profile',
+          'Your profile must be active before you can send interests.',
+        );
+        return;
+      }
+
+      // Use local synchronized status if available.
+      const key = String(id);
+
+      const override = interestOverridesRef.current[key];
+
+      const existingStatus = override
+        ? override.interestStatus
+        : member.interest_status;
+
+      if (
+        existingStatus !== null &&
+        existingStatus !== undefined
+      ) {
+        openMember(member);
+        return;
+      }
+
+      actionBusyRef.current = true;
+      setBusyMember(key);
+
+      try {
+        // Laravel SentInterestController::store expects
+        // the numeric recipient members.id.
+        const result = await sendHomeInterest(id);
+
+        // Existing API helpers may return either
+        // response.data.data or the whole response body.
+        const data = result?.data?.data ||
+          result?.data ||
+          result ||
+          {};
+
+        if (data.sent !== true) {
+          throw new Error(
+            'Interest creation was not confirmed.',
+          );
+        }
+
+        const status = String(data.status ?? '0');
+
+        notifyInterestChanged(
+          id,
+          status,
+          data.id ?? null,
+        );
+
+        Alert.alert(
+          'Interest Sent',
+          'Your interest has been submitted successfully.',
+        );
+      } catch (error) {
+        const code = error?.response?.data?.code;
+        const httpStatus = error?.response?.status;
+
+        if (
+          code === 'ACCOUNT_NOT_ACTIVE' ||
+          httpStatus === 403
+        ) {
+          Alert.alert(
+            'Account Not Active',
+            'Please activate your profile to send interests.',
+          );
+        } else {
+          Alert.alert(
+            'Unable to Send Interest',
+            getErrorMessage(error),
+          );
+        }
+
+        // A timeout might occur after the backend
+        // created the record. Do not immediately
+        // retry blindly: refresh to confirm its state.
+        updateTab(selectedTab, previous => ({
+          ...previous,
+          loaded: false,
+        }));
+      } finally {
+        actionBusyRef.current = false;
+        setBusyMember(null);
+      }
+    },
+    [
+      canSendInterest,
+      openMember,
+      selectedTab,
+      updateTab,
+    ],
+  );
+
+
+  // -----------------------------------------
+  // Add / Remove Shortlist
+  // -----------------------------------------
+
+  const handleShortlist = useCallback(
+    async member => {
+      const id = Number(member?.id);
+
+      if (
+        !Number.isInteger(id) ||
+        id <= 0 ||
+        actionBusyRef.current
+      ) {
+        return;
+      }
+
+      const key = String(id);
+
+      const previousStatus =
+        Object.prototype.hasOwnProperty.call(
+          shortlistOverridesRef.current,
+          key,
+        )
+          ? shortlistOverridesRef.current[key]
+          : isSaved(member.is_shortlisted);
+
+      actionBusyRef.current = true;
+      setBusyMember(key);
+
+      try {
+        if (previousStatus) {
+          await removeHomeShortlist(id);
+        } else {
+          await addHomeShortlist(id);
+        }
+
+        // Notify all subscribed screens.
+        notifyShortlistChanged(
+          id,
+          !previousStatus,
+        );
+
+        // When currently on Shortlisted, reload immediately
+        // because a member may have been removed or added.
+        if (selectedTab === 'shortlisted') {
+          await loadProfiles('shortlisted', 'refresh');
+        }
+      } catch (error) {
+        Alert.alert(
+          'Shortlist Failed',
+          getErrorMessage(error),
+        );
+      } finally {
+        actionBusyRef.current = false;
+        setBusyMember(null);
+      }
+    },
+    [
+      selectedTab,
+      loadProfiles,
+    ],
+  );
+
+
+
+  // -----------------------------------------
+  // Selected tab
+  // -----------------------------------------
+
+  const activeTab = useMemo(
+    () =>
+      TABS.find(tab => tab.id === selectedTab) ||
+      TABS[0],
+    [selectedTab],
+  );
+
+  const currentTab =
+    tabStates[selectedTab] || createTabState();
+
+  const profiles = currentTab.profiles;
+
+
+
+
+
+  // -----------------------------------------
+  // Header
+  // -----------------------------------------
+
+  const renderHeader = () => (
+    <View>
+      <View style={styles.greetingRow}>
+        <View style={styles.greetingContent}>
+          <Text style={styles.brand}>
+            HimRishtey
+          </Text>
+
+          <Text style={styles.greeting}>
+            Hello{firstName ? `, ${firstName}` : ''}!
+          </Text>
+
+          <Text style={styles.subtitle}>
+            Let's find your perfect match today.
+          </Text>
+        </View>
+
+        <TouchableOpacity
+          style={styles.searchIconButton}
+          onPress={() => navigation.navigate('Search')}>
+          <AppIcon name="search" style={styles.searchIcon} />
+        </TouchableOpacity>
+      </View>
+
+      <TouchableOpacity
+        style={styles.searchBar}
+        onPress={() => navigation.navigate('Search')}>
+        <AppIcon name="search" style={styles.searchBarIcon} />
+
+        <Text style={styles.searchPlaceholder}>
+          Search by profile ID, location, caste...
+        </Text>
+
+        <AppIcon name="filters" style={styles.filterIcon} />
+      </TouchableOpacity>
+
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.tabsContent}
+        style={styles.tabsScroll}>
+        {TABS.map(tab => {
+          const active = tab.id === selectedTab;
+
+          return (
+            <TouchableOpacity
+              key={tab.id}
+              onPress={() => setSelectedTab(tab.id)}
+              activeOpacity={0.8}
+              style={[
+                styles.tab,
+                active && styles.activeTab,
+              ]}>
+              <AppIcon name={tab.icon} size={18} color={active ? colors.white : colors.primary} style={styles.tabIcon} />
+
+              <Text
+                style={[
+                  styles.tabText,
+                  active && styles.activeTabText,
+                ]}>
+                {tab.title}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </ScrollView>
+
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>
-          {title}
+          {activeTab.title}
         </Text>
 
-        <Text style={styles.count}>
-          {profiles.length} profiles
+        <Text style={styles.sectionCount}>
+          {profiles.length} Loaded
         </Text>
       </View>
-
-      <FlatList
-        horizontal
-        data={profiles}
-        keyExtractor={item =>
-          String(item.profile_id)
-        }
-        renderItem={renderMember}
-        showsHorizontalScrollIndicator={false}
-        initialNumToRender={3}
-        maxToRenderPerBatch={4}
-        windowSize={3}
-        contentContainerStyle={styles.profileRow}
-      />
     </View>
   );
-});
 
-/*
-|--------------------------------------------------------------------------
-| Home screen
-|--------------------------------------------------------------------------
-*/
+  // -----------------------------------------
+  // Footer
+  // -----------------------------------------
 
-export default function HomeScreen() {
-  const {user} = useAuth();
+  const renderFooter = () => {
+    if (currentTab.loadingMore) {
+      return (
+        <View style={styles.footer}>
+          <ActivityIndicator
+            color={colors.primary}
+            size="small"
+          />
 
-  const member = user?.member ?? user;
-
-  /*
-  |--------------------------------------------------------------------------
-  | State
-  |--------------------------------------------------------------------------
-  */
-
-  const [homeData, setHomeData] = useState(null);
-
-  const [loading, setLoading] = useState(true);
-
-  const [refreshing, setRefreshing] = useState(false);
-
-  const [error, setError] = useState('');
-
-  /*
-  |--------------------------------------------------------------------------
-  | Load Home API
-  |--------------------------------------------------------------------------
-  */
-
-  const loadHome = useCallback(async () => {
-    try {
-      setError('');
-
-      const data = await getHomeData();
-
-      setHomeData(data);
-    } catch (err) {
-      setError(
-        err.response?.data?.message ||
-          err.message ||
-          'Unable to load profiles.',
+          <Text style={styles.footerText}>
+            Loading more profiles...
+          </Text>
+        </View>
       );
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
     }
-  }, []);
 
-  /*
-  |--------------------------------------------------------------------------
-  | Initial API request
-  |--------------------------------------------------------------------------
-  */
+    if (
+      currentTab.error &&
+      profiles.length > 0
+    ) {
+      return (
+        <TouchableOpacity
+          style={styles.retryButton}
+          onPress={() =>
+            loadProfiles(
+              selectedTab,
+              currentTab.errorMode === 'more'
+                ? 'more'
+                : 'refresh',
+            )
+          }>
+          <Text style={styles.retryText}>
+            Unable to load profiles. Tap to retry
+          </Text>
+        </TouchableOpacity>
+      );
+    }
 
-  useEffect(() => {
-    loadHome();
-  }, [loadHome]);
+    if (
+      currentTab.loaded &&
+      !currentTab.nextCursor &&
+      profiles.length > 0
+    ) {
+      return (
+        <View style={styles.footer}>
+          <Text style={styles.footerText}>
+            You've viewed all available profiles.
+          </Text>
+        </View>
+      );
+    }
 
-  /*
-  |--------------------------------------------------------------------------
-  | Pull to refresh
-  |--------------------------------------------------------------------------
-  */
+    return null;
+  };
 
-  const onRefresh = useCallback(() => {
-    setRefreshing(true);
-    loadHome();
-  }, [loadHome]);
+  // -----------------------------------------
+  // Empty / Loading state
+  // -----------------------------------------
 
-  /*
-  |--------------------------------------------------------------------------
-  | Loading
-  |--------------------------------------------------------------------------
-  */
+  const renderEmpty = () => {
+    if (currentTab.loading) {
+      return (
+        <View style={styles.emptyContainer}>
+          <ActivityIndicator
+            size="large"
+            color={colors.primary}
+          />
 
-  if (loading) {
+          <Text style={styles.emptyDescription}>
+            Finding profiles...
+          </Text>
+        </View>
+      );
+    }
+
     return (
-      <View style={styles.center}>
-        <ActivityIndicator
-          size="large"
-          color={colors.primary}
-        />
+      <View style={styles.emptyContainer}>
+        <AppIcon name="heart" style={styles.emptyIcon} />
 
-        <Text style={styles.muted}>
-          Finding your matches...
+        <Text style={styles.emptyTitle}>
+          {currentTab.error
+            ? 'Unable to load profiles'
+            : 'No profiles found'}
         </Text>
+
+        <Text style={styles.emptyDescription}>
+          {currentTab.error ||
+            'There are no profiles in this category right now.'}
+        </Text>
+
+        {currentTab.error ? (
+          <TouchableOpacity
+            style={styles.emptyRetry}
+            onPress={() =>
+              loadProfiles(selectedTab, 'refresh')
+            }>
+            <Text style={styles.emptyRetryText}>
+              Try Again
+            </Text>
+          </TouchableOpacity>
+        ) : null}
       </View>
     );
-  }
+  };
 
-  /*
-  |--------------------------------------------------------------------------
-  | Sections containing profiles
-  |--------------------------------------------------------------------------
-  */
-
-  const profileSections = sections.filter(
-    section =>
-      (homeData?.[section.key] || []).length > 0,
-  );
-
-  /*
-  |--------------------------------------------------------------------------
-  | Home UI
-  |--------------------------------------------------------------------------
-  */
+  // -----------------------------------------
+  // Main List
+  // -----------------------------------------
 
   return (
     <FlatList
+      key={selectedTab}
       style={styles.container}
-      data={profileSections}
-      keyExtractor={item => item.key}
-      showsVerticalScrollIndicator={false}
-      contentContainerStyle={styles.content}
-
-      /*
-      |--------------------------------------------------------------------------
-      | Pull to refresh
-      |--------------------------------------------------------------------------
-      */
-
+      contentContainerStyle={styles.listContent}
+      data={profiles}
+      keyExtractor={(item, index) =>
+        memberKey(item) || String(index)
+      }
+      renderItem={({ item }) => (
+        <HomeMemberCard
+          member={item}
+          showMatchPercentage={selectedTab === 'matches'}
+          matchPercentage={item.match_percentage}
+          isShortlisted={isSaved(item.is_shortlisted)}
+          interestStatus={item.interest_status}
+          canSendInterest={canSendInterest}
+          busy={busyMember !== null}
+          onViewProfile={() => openMember(item)}
+          onInterest={() => handleInterest(item)}
+          onInactiveInterest={() =>
+            Alert.alert(
+              'Activate Profile',
+              'Your profile must be active to send interests. Contact support if you need help with activation.',
+            )
+          }
+          onShortlist={() => handleShortlist(item)}
+        />
+      )}
+      ListHeaderComponent={renderHeader}
+      ListFooterComponent={renderFooter}
+      ListEmptyComponent={renderEmpty}
+      onMomentumScrollBegin={() => {
+        userScrolledRef.current = true;
+      }}
+      onScrollBeginDrag={() => {
+        userScrolledRef.current = true;
+      }}
+      onEndReached={loadMore}
+      onEndReachedThreshold={0.4}
       refreshControl={
         <RefreshControl
-          refreshing={refreshing}
-          onRefresh={onRefresh}
+          refreshing={currentTab.refreshing}
+          onRefresh={refreshTab}
           colors={[colors.primary]}
         />
       }
-
-      /*
-      |--------------------------------------------------------------------------
-      | Header
-      |--------------------------------------------------------------------------
-      */
-
-      ListHeaderComponent={
-        <>
-          <View style={styles.header}>
-            <View>
-              <Text style={styles.brand}>
-                HimRishtey
-              </Text>
-
-              <Text style={styles.greeting}>
-                Hello, {member?.full_name || 'Member'}
-              </Text>
-            </View>
-          </View>
-
-          <View style={styles.banner}>
-            <Text style={styles.bannerTitle}>
-              Find Your Perfect Match
-            </Text>
-
-            <Text style={styles.bannerSubtitle}>
-              Discover meaningful connections
-              made for you.
-            </Text>
-          </View>
-
-          {error ? (
-            <View style={styles.errorBox}>
-              <Text style={styles.error}>
-                {error}
-              </Text>
-
-              <TouchableOpacity
-                onPress={loadHome}
-                activeOpacity={0.8}>
-                <Text style={styles.retry}>
-                  Try Again
-                </Text>
-              </TouchableOpacity>
-            </View>
-          ) : null}
-        </>
-      }
-
-      /*
-      |--------------------------------------------------------------------------
-      | Empty state
-      |--------------------------------------------------------------------------
-      */
-
-      ListEmptyComponent={
-        !error ? (
-          <Text style={styles.emptyText}>
-            No profiles available right now.
-          </Text>
-        ) : null
-      }
-
-      /*
-      |--------------------------------------------------------------------------
-      | Render each profile section
-      |--------------------------------------------------------------------------
-      */
-
-      renderItem={({item}) => (
-        <ProfileSection
-          title={item.title}
-          profiles={homeData?.[item.key] || []}
-        />
-      )}
+      showsVerticalScrollIndicator={false}
+      initialNumToRender={5}
+      maxToRenderPerBatch={6}
+      windowSize={7}
     />
   );
 }
 
-/*
-|--------------------------------------------------------------------------
-| Styles
-|--------------------------------------------------------------------------
-*/
+// -----------------------------------------
+// Styles
+// -----------------------------------------
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FAF9FF',
+    backgroundColor: colors.background,
   },
 
-  content: {
-    paddingBottom: 40,
+  listContent: {
+    paddingHorizontal: 14,
+    paddingBottom: 28,
     flexGrow: 1,
   },
 
-  center: {
-    flex: 1,
-    justifyContent: 'center',
+  greetingRow: {
+    flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FAF9FF',
+    justifyContent: 'space-between',
+    paddingTop: 18,
+    paddingBottom: 16,
   },
 
-  muted: {
-    marginTop: 12,
-    color: colors.textSecondary,
-  },
-
-  header: {
-    padding: 20,
-    backgroundColor: '#FFFFFF',
+  greetingContent: {
+    flex: 1,
   },
 
   brand: {
-    fontSize: 25,
-    fontWeight: '800',
-    color: colors.primary,
+    fontSize: 21,
+    fontWeight: '900',
+    color: colors.primaryDark,
+    marginBottom: 10,
   },
 
   greeting: {
-    marginTop: 6,
-    fontSize: 14,
-    color: colors.textSecondary,
-  },
-
-  banner: {
-    margin: 16,
-    padding: 24,
-    borderRadius: 20,
-    backgroundColor: '#EDE9FF',
-  },
-
-  bannerTitle: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: '800',
     color: colors.text,
   },
 
-  bannerSubtitle: {
-    marginTop: 10,
+  subtitle: {
+    fontSize: 12,
     color: colors.textSecondary,
-    lineHeight: 22,
+    marginTop: 4,
   },
 
-  section: {
-    marginTop: 20,
-    marginBottom: 8,
+  searchIconButton: {
+    width: 43,
+    height: 43,
+    borderRadius: 22,
+    backgroundColor: colors.white,
+    borderWidth: 1,
+    borderColor: colors.border,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 12,
+  },
+
+  searchIcon: {
+    fontSize: 27,
+    color: colors.primary,
+  },
+
+  searchBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.white,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 13,
+    minHeight: 48,
+    paddingHorizontal: 13,
+    marginBottom: 16,
+  },
+
+  searchBarIcon: {
+    fontSize: 24,
+    color: colors.primary,
+    marginRight: 9,
+  },
+
+  searchPlaceholder: {
+    flex: 1,
+    fontSize: 12,
+    color: colors.textSecondary,
+  },
+
+  filterIcon: {
+    fontSize: 21,
+    color: colors.primary,
+  },
+
+  tabsScroll: {
+    marginHorizontal: -14,
+    marginBottom: 19,
+  },
+
+  tabsContent: {
+    paddingHorizontal: 14,
+    gap: 9,
+  },
+
+  tab: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.white,
+    borderRadius: 13,
+    width: 105,
+    minHeight: 68,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 7,
+  },
+
+  activeTab: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
+
+  tabIcon: {
+    color: colors.primary,
+    fontSize: 19,
+    marginBottom: 4,
+  },
+
+  tabText: {
+    fontSize: 11,
+    color: colors.text,
+    fontWeight: '700',
+    textAlign: 'center',
+  },
+
+  activeTabText: {
+    color: colors.white,
   },
 
   sectionHeader: {
-    marginHorizontal: 20,
-    marginBottom: 14,
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 14,
   },
 
   sectionTitle: {
-    fontSize: 19,
-    fontWeight: '700',
+    fontSize: 17,
+    fontWeight: '800',
     color: colors.text,
-    flexShrink: 1,
   },
 
-  count: {
-    fontSize: 12,
-    color: colors.primary,
-    marginLeft: 10,
-  },
-
-  profileRow: {
-    paddingLeft: 20,
-    paddingRight: 8,
-  },
-
-  errorBox: {
-    padding: 16,
-    marginHorizontal: 16,
-    borderRadius: 12,
-    backgroundColor: '#FFF0F0',
-  },
-
-  error: {
-    color: '#B42318',
-  },
-
-  retry: {
-    color: colors.primary,
-    fontWeight: '700',
-    marginTop: 10,
-  },
-
-  emptyText: {
-    textAlign: 'center',
-    padding: 25,
+  sectionCount: {
+    fontSize: 11,
     color: colors.textSecondary,
+  },
+
+  emptyContainer: {
+    alignItems: 'center',
+    paddingTop: 55,
+    paddingHorizontal: 25,
+    paddingBottom: 35,
+  },
+
+  emptyIcon: {
+    fontSize: 45,
+    color: colors.primary,
+    marginBottom: 12,
+  },
+
+  emptyTitle: {
+    fontSize: 17,
+    fontWeight: '800',
+    color: colors.text,
+    textAlign: 'center',
+  },
+
+  emptyDescription: {
+    fontSize: 12,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: 19,
+    marginTop: 9,
+  },
+
+  emptyRetry: {
+    marginTop: 16,
+    backgroundColor: colors.primary,
+    paddingHorizontal: 20,
+    paddingVertical: 11,
+    borderRadius: 10,
+  },
+
+  emptyRetryText: {
+    color: colors.white,
+    fontSize: 12,
+    fontWeight: '700',
+  },
+
+  footer: {
+    paddingVertical: 20,
+    alignItems: 'center',
+    gap: 9,
+  },
+
+  footerText: {
+    color: colors.textSecondary,
+    fontSize: 12,
+    textAlign: 'center',
+  },
+
+  retryButton: {
+    paddingVertical: 20,
+    alignItems: 'center',
+  },
+
+  retryText: {
+    color: colors.primary,
+    fontSize: 12,
+    fontWeight: '700',
   },
 });

@@ -13,6 +13,7 @@ import {
 
 
 import { getMyProfile } from '../api/profileApi';
+import {normalizeSessionMember, isSessionMemberActive} from '../services/sessionMember';
 
 const AuthContext = createContext(null);
 
@@ -31,7 +32,7 @@ export function AuthProvider({ children }) {
           const profile = await getMyProfile(token);
 
           if (mounted) {
-            setUser(profile);
+            setUser(normalizeSessionMember(profile));
           }
         }
       } catch (error) {
@@ -63,7 +64,7 @@ export function AuthProvider({ children }) {
 
     await saveSession(token, member);
 
-    setUser(profile);
+    setUser(normalizeSessionMember(profile, member));
   };
 
   const refreshUser = async () => {
@@ -74,7 +75,7 @@ export function AuthProvider({ children }) {
     }
 
     const profile = await getMyProfile(token);
-    setUser(profile);
+    setUser(previous => normalizeSessionMember(profile, previous));
 
     return profile;
   };
@@ -86,7 +87,7 @@ export function AuthProvider({ children }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, loading, signIn, signOut, refreshUser }}>
+      value={{ user, loading, signIn, signOut, refreshUser, canSendInterest: isSessionMemberActive(user) }}>
       {children}
     </AuthContext.Provider>
   );

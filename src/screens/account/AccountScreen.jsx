@@ -1,3 +1,4 @@
+import AppIcon from '../../components/AppIcon';
 
 import React, {
   useCallback,
@@ -30,7 +31,7 @@ function AccountItem({ icon, title, subtitle, onPress, disabled = false }) {
       disabled={disabled}
       activeOpacity={0.75}>
       <View style={styles.menuIcon}>
-        <Text style={styles.menuEmoji}>{icon}</Text>
+        <AppIcon name={icon} size={22} />
       </View>
 
       <View style={styles.menuContent}>
@@ -41,7 +42,7 @@ function AccountItem({ icon, title, subtitle, onPress, disabled = false }) {
       </View>
 
       {!disabled ? (
-        <Text style={styles.chevron}>›</Text>
+        <AppIcon name="next" style={styles.chevron} />
       ) : null}
     </TouchableOpacity>
   );
@@ -249,7 +250,7 @@ export default function AccountScreen() {
 
       <View style={styles.menuCard}>
         <AccountItem
-          icon="👤"
+          icon="user"
           title="View My Profile"
           subtitle="View your complete profile"
           onPress={viewProfile}
@@ -258,7 +259,7 @@ export default function AccountScreen() {
         <View style={styles.divider} />
 
         <AccountItem
-          icon="✏️"
+          icon="edit"
           title="Edit Profile"
           subtitle="Update your matrimonial profile"
           onPress={() =>
@@ -269,7 +270,7 @@ export default function AccountScreen() {
         <View style={styles.divider} />
 
         <AccountItem
-          icon="📸"
+          icon="camera"
           title="My Photos"
           subtitle="Take, choose and upload photos"
           onPress={() =>
@@ -280,7 +281,7 @@ export default function AccountScreen() {
         <View style={styles.divider} />
 
         <AccountItem
-          icon="🔐"
+          icon="lock"
           title="Change Password"
           subtitle="Update your account password"
           onPress={() =>
@@ -294,7 +295,7 @@ export default function AccountScreen() {
 
       <View style={styles.menuCard}>
         <AccountItem
-          icon="❤️"
+          icon="heart"
           title="My Shortlist"
           disabled
         />
@@ -302,7 +303,7 @@ export default function AccountScreen() {
         <View style={styles.divider} />
 
         <AccountItem
-          icon="👑"
+          icon="crown"
           title="Membership"
           subtitle="View membership plans"
           onPress={() =>
@@ -313,7 +314,7 @@ export default function AccountScreen() {
         <View style={styles.divider} />
 
         <AccountItem
-          icon="💰"
+          icon="wallet"
           title="My Wallet"
           subtitle="Wallet balance and transactions"
           onPress={() =>
@@ -326,13 +327,13 @@ export default function AccountScreen() {
 
       <View style={styles.menuCard}>
         <AccountItem
-          icon="⚙️"
+          icon="settings"
           title="Settings & Privacy"
           disabled
         />
 
         <AccountItem
-          icon="👁️"
+          icon="eye"
           title="Profile Visibility"
           subtitle="Show or hide your matrimonial profile"
           onPress={() =>
@@ -341,7 +342,7 @@ export default function AccountScreen() {
         />
 
         <AccountItem
-          icon="🗑️"
+          icon="delete"
           title="Delete Account"
           subtitle="Request account deletion"
           onPress={() =>
@@ -357,7 +358,7 @@ export default function AccountScreen() {
           onPress={handleLogout}>
 
           <View style={styles.menuIcon}>
-            <Text style={styles.menuEmoji}>🚪</Text>
+            <AppIcon name="logout" style={styles.menuEmoji} />
           </View>
 
           <View style={styles.menuContent}>
@@ -369,7 +370,7 @@ export default function AccountScreen() {
           {loggingOut ? (
             <ActivityIndicator color={colors.primary} />
           ) : (
-            <Text style={styles.chevron}>›</Text>
+            <AppIcon name="next" style={styles.chevron} />
           )}
         </TouchableOpacity>
       </View>

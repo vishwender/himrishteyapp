@@ -1,4 +1,4 @@
-
+// @refresh reset
 import React, {
   useCallback,
   useMemo,
@@ -26,11 +26,11 @@ import {
 import {
   getSentInterests,
   getReceivedInterests,
-  acceptReceivedInterest,
-  rejectReceivedInterest,
-} from '../../api/interestListsApi';
-
-import { cancelInterest } from '../../api/interestApi';
+  acceptInterest,
+  rejectInterest,
+  cancelInterest,
+} from '../../api/interestApi';
+import { notifyInterestChanged } from '../../services/interestSync';
 import { getProfileImage } from '../../config/images';
 import colors from '../../theme/colors';
 
@@ -41,7 +41,6 @@ const TABS = [
   { key: 'rejected', title: 'Rejected' },
 ];
 
-const CACHE_DURATION = 60000;
 
 function getErrorMessage(error) {
   return (
@@ -133,9 +132,15 @@ function InterestCard({
           </Text>
 
           <Text style={styles.direction}>
-            {item.direction === 'sent'
-              ? 'Interest sent'
-              : 'Interest received'}
+            {status === '1'
+              ? 'Interest accepted'
+              : status === '2'
+                ? 'Interest rejected'
+                : pending
+                  ? item.direction === 'sent'
+                    ? 'Interest sent'
+                    : 'Interest received'
+                  : 'Interest status unavailable'}
           </Text>
         </View>
       </TouchableOpacity>
@@ -222,7 +227,6 @@ export default function InterestsScreen() {
   const [error, setError] = useState('');
   const [busyId, setBusyId] = useState(null);
 
-  const lastLoadedRef = useRef(0);
   const requestRef = useRef(0);
   const busyRef = useRef(false);
 
@@ -231,7 +235,7 @@ export default function InterestsScreen() {
 
     if (refresh) {
       setRefreshing(true);
-    } else if (!lastLoadedRef.current) {
+    } else {
       setLoading(true);
     }
 
@@ -247,17 +251,16 @@ export default function InterestsScreen() {
         return;
       }
 
-      setSent(sentData.map(item => ({
+      setSent((Array.isArray(sentData) ? sentData : []).map(item => ({
         ...item,
         direction: 'sent',
       })));
 
-      setReceived(receivedData.map(item => ({
+      setReceived((Array.isArray(receivedData) ? receivedData : []).map(item => ({
         ...item,
         direction: 'received',
       })));
 
-      lastLoadedRef.current = Date.now();
     } catch (err) {
       if (requestId === requestRef.current) {
         setError(getErrorMessage(err));
@@ -270,16 +273,12 @@ export default function InterestsScreen() {
     }
   }, []);
 
-  // Fetch only when needed, rather than on every tab switch.
+  // Refresh on navigation focus so updates made on Member Profile
+  // or from another session are reflected when returning here.
+  // Switching tabs does not trigger a new request.
   useFocusEffect(
     useCallback(() => {
-      if (
-        !lastLoadedRef.current ||
-        Date.now() - lastLoadedRef.current > CACHE_DURATION
-      ) {
-        loadData();
-      }
-
+      loadData();
       return () => {
         requestRef.current += 1;
       };
@@ -346,7 +345,7 @@ export default function InterestsScreen() {
               try {
                 if (action === 'accept') {
                   const result =
-                    await acceptReceivedInterest(item.id);
+                    await acceptInterest(item.id);
 
                   setReceived(previous =>
                     previous.map(entry =>
@@ -361,7 +360,7 @@ export default function InterestsScreen() {
                   );
                 } else if (action === 'reject') {
                   const result =
-                    await rejectReceivedInterest(item.id);
+                    await rejectInterest(item.id);
 
                   setReceived(previous =>
                     previous.map(entry =>
@@ -384,21 +383,20 @@ export default function InterestsScreen() {
                   }
 
                   setSent(previous =>
-                    previous.filter(
-                      entry => entry.id !== item.id,
-                    ),
+                    previous.filter(entry => entry.id !== item.id),
                   );
+
+                  // item.profile_id is the numeric recipient members.id.
+                  // Home uses the same numeric key for interest events.
+                  notifyInterestChanged(item.profile_id, null, null);
                 }
 
-                // Recheck lists on next visit because the
-                // backend data has changed.
-                lastLoadedRef.current = 0;
+                // Refresh from the backend on the next screen focus.
               } catch (err) {
                 Alert.alert(
                   'Action failed',
                   getErrorMessage(err),
                 );
-                lastLoadedRef.current = 0;
               } finally {
                 busyRef.current = false;
                 setBusyId(null);
@@ -419,7 +417,7 @@ export default function InterestsScreen() {
         onAccept={entry => handleAction(entry, 'accept')}
         onReject={entry => handleAction(entry, 'reject')}
         onCancel={entry => handleAction(entry, 'cancel')}
-        busy={busyId !== null}
+        busy={busyId === item.id}
       />
     ),
     [openProfile, handleAction, busyId],

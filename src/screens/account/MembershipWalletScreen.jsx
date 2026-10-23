@@ -1,3 +1,4 @@
+import AppIcon from '../../components/AppIcon';
 
 import React, { useCallback, useState } from 'react';
 import {
@@ -219,9 +220,7 @@ export default function MembershipWalletScreen() {
                                     ) : null}
                                 </View>
 
-                                <Text style={styles.arrow}>
-                                    {selectedType === item.id ? '−' : '+'}
-                                </Text>
+                                <AppIcon name={selectedType === item.id ? 'collapse' : 'expand'} style={styles.arrow} />
                             </TouchableOpacity>
 
                             {selectedType === item.id ? (

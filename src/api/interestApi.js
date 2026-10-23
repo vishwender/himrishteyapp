@@ -89,3 +89,68 @@ export async function cancelInterest(interestId) {
 
   return response.data.data;
 }
+
+
+export async function getSentInterests() {
+  const response = await api.get('/interests/sent', {
+    headers: await authHeaders(),
+  });
+
+  if (!response.data?.success) {
+    throw new Error(
+      response.data?.message || 'Unable to fetch sent interests.',
+    );
+  }
+
+  return response.data.data?.interests ?? [];
+}
+
+export async function getReceivedInterests() {
+  const response = await api.get('/interests/received', {
+    headers: await authHeaders(),
+  });
+
+  if (!response.data?.success) {
+    throw new Error(
+      response.data?.message || 'Unable to fetch received interests.',
+    );
+  }
+
+  return response.data.data?.interests ?? [];
+}
+
+export async function acceptInterest(interestId) {
+  const id = validMemberId(interestId);
+
+  const response = await api.put(
+    `/interests/${id}/accept`,
+    {},
+    {headers: await authHeaders()},
+  );
+
+  if (!response.data?.success) {
+    throw new Error(
+      response.data?.message || 'Unable to accept interest.',
+    );
+  }
+
+  return response.data.data;
+}
+
+export async function rejectInterest(interestId) {
+  const id = validMemberId(interestId);
+
+  const response = await api.put(
+    `/interests/${id}/reject`,
+    {},
+    {headers: await authHeaders()},
+  );
+
+  if (!response.data?.success) {
+    throw new Error(
+      response.data?.message || 'Unable to reject interest.',
+    );
+  }
+
+  return response.data.data;
+}

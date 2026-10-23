@@ -1,5 +1,5 @@
 export const API_CONFIG = {
-  baseURL: 'https://himrishtey.com/api/v1',
+  baseURL: 'http://10.0.2.2:32769/api/v1',
   appCode: 'himrishtey',
   timeout: 15000,
 };

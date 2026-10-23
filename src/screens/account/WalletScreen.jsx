@@ -1,3 +1,4 @@
+import AppIcon from '../../components/AppIcon';
 
 import React, { useCallback, useState } from 'react';
 
@@ -138,13 +139,10 @@ export default function WalletScreen() {
                         styles.transactionIcon,
                         isCredit ? styles.creditBg : styles.debitBg,
                     ]}>
-                    <Text
-                        style={[
+                    <AppIcon name={isCredit ? 'credit' : 'debit'} style={[
                             styles.iconText,
                             isCredit ? styles.credit : styles.debit,
-                        ]}>
-                        {isCredit ? '↓' : '↑'}
-                    </Text>
+                        ]} />
                 </View>
 
                 <View style={styles.transactionInfo}>
@@ -206,7 +204,7 @@ export default function WalletScreen() {
             </View>
             <View style={styles.offersSection}>
                 <Text style={styles.sectionTitle}>
-                    🎁 Wallet Offers
+                    Wallet Offers
                 </Text>
 
                 {offersError ? (
@@ -254,7 +252,7 @@ export default function WalletScreen() {
                                 style={styles.offerCard}>
 
                                 <View style={styles.offerTop}>
-                                    <Text style={styles.offerEmoji}>🎁</Text>
+                                    <AppIcon name="gift" style={styles.offerEmoji} />
 
                                     <View style={styles.offerContent}>
                                         <Text style={styles.offerTitle}>

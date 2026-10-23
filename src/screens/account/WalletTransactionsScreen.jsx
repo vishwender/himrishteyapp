@@ -1,3 +1,4 @@
+import AppIcon from '../../components/AppIcon';
 
 import React, { useCallback, useState } from 'react';
 
@@ -69,9 +70,7 @@ export default function WalletTransactionsScreen() {
         return (
             <View style={styles.transaction}>
                 <View style={styles.iconBox}>
-                    <Text style={styles.icon}>
-                        {isCredit ? '↓' : '↑'}
-                    </Text>
+                    <AppIcon name={isCredit ? 'credit' : 'debit'} style={styles.icon} />
                 </View>
 
                 <View style={styles.transactionDetails}>
