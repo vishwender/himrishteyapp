@@ -25,7 +25,7 @@ const icons = {
 };
 
 // Icons are decorative; their containing control owns its accessible label.
-export default function AppIcon({name, size, color, style}) {
+export default function AppIcon({name, size, color, style, filled = false}) {
   const flattened = StyleSheet.flatten(style) || {};
   const {fontSize, fontWeight, lineHeight, textAlign, color: styleColor, ...layout} = flattened;
   const Icon = icons[name] || Circle;
@@ -33,6 +33,7 @@ export default function AppIcon({name, size, color, style}) {
     <Icon
       size={size || fontSize || 20}
       color={color || styleColor || colors.primary}
+      fill={filled ? color || styleColor || colors.primary : 'none'}
       strokeWidth={2}
       style={layout}
       accessible={false}

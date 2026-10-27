@@ -19,7 +19,7 @@ const icons = {
 const tabIcons = Object.fromEntries(
   Object.entries(icons).map(([route, name]) => [
     route,
-    ({color, size}) => <AppIcon name={name} size={size} color={color} />,
+    ({color, size, focused}) => <AppIcon name={name} size={size} color={color} filled={focused} />,
   ]),
 );
 
@@ -31,6 +31,8 @@ export default function MainTabs() {
         tabBarActiveTintColor: '#673DE6',
         tabBarInactiveTintColor: '#85858F',
         tabBarStyle: {
+          position: 'absolute',
+          backgroundColor: 'rgba(255, 255, 255, 0.84)',
           height: 65,
           paddingTop: 6,
           paddingBottom: 8,

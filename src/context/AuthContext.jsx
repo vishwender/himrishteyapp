@@ -1,5 +1,6 @@
 import React, {
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useState,
@@ -67,7 +68,7 @@ export function AuthProvider({ children }) {
     setUser(normalizeSessionMember(profile, member));
   };
 
-  const refreshUser = async () => {
+  const refreshUser = useCallback(async () => {
     const token = await getSessionToken();
 
     if (!token) {
@@ -78,7 +79,7 @@ export function AuthProvider({ children }) {
     setUser(previous => normalizeSessionMember(profile, previous));
 
     return profile;
-  };
+  }, []);
 
   const signOut = async () => {
     await clearSession();

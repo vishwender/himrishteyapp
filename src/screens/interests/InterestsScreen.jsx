@@ -1,4 +1,5 @@
 // @refresh reset
+import {useBottomTabBarHeight} from '@react-navigation/bottom-tabs';
 import React, {
   useCallback,
   useMemo,
@@ -214,6 +215,7 @@ function InterestCard({
 }
 
 export default function InterestsScreen() {
+  const bottomBarHeight = useBottomTabBarHeight();
   const navigation = useNavigation();
 
   const [selectedTab, setSelectedTab] =
@@ -470,7 +472,7 @@ export default function InterestsScreen() {
             `${item.direction}-${item.id}`
           }
           renderItem={renderInterest}
-          contentContainerStyle={styles.listContent}
+          contentContainerStyle={[styles.listContent, {paddingBottom: bottomBarHeight + 35}]}
           showsVerticalScrollIndicator={false}
           refreshControl={
             <RefreshControl

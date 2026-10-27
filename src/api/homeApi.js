@@ -63,6 +63,25 @@ export async function getDiscoverProfiles({
     throw new Error('Session expired. Please log in again.');
   }
 
+  if (section === 'nearby') {
+    const response = await api.get('/search/nearby', {
+      params: {per_page: perPage, page: cursor ? Number(cursor) : 1},
+      headers: {Authorization: `Bearer ${token}`},
+    });
+    const data = response.data?.data;
+    const page = Number(data?.pagination?.current_page);
+    const lastPage = Number(data?.pagination?.last_page);
+    if (!response.data?.success || !Array.isArray(data?.members) ||
+        !Number.isInteger(page) || page < 1 ||
+        !Number.isInteger(lastPage) || lastPage < page) {
+      throw new Error(response.data?.message || 'Invalid nearby API response.');
+    }
+    return {
+      profiles: data.members,
+      nextCursor: page < lastPage ? String(page + 1) : null,
+    };
+  }
+
   const params = {
     section,
     per_page: perPage,

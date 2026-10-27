@@ -1,4 +1,8 @@
+import {useBottomTabBarHeight} from '@react-navigation/bottom-tabs';
 import AppIcon from '../../components/AppIcon';
+import DiscoverHeader from '../../components/home/DiscoverHeader';
+import {checkSentInterest} from '../../api/interestApi';
+import {checkShortlist} from '../../api/shortlistApi';
 import React, {
   useCallback,
   useEffect,
@@ -17,9 +21,12 @@ import {
   RefreshControl,
   Alert,
   StyleSheet,
+  StatusBar,
+  useWindowDimensions,
 } from 'react-native';
 
 import { useNavigation } from '@react-navigation/native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useFocusEffect } from '@react-navigation/native';
 
@@ -73,10 +80,10 @@ const TABS = [
     icon: 'bookmark',
   },
   {
-    id: 'viewed_you',
-    section: 'viewed_you',
-    title: 'Viewed You',
-    icon: 'eye',
+    id: 'nearby',
+    section: 'nearby',
+    title: 'Near Me',
+    icon: 'location',
   },
 ];
 
@@ -153,8 +160,17 @@ function isSaved(value) {
 // -----------------------------------------
 
 export default function HomeScreen() {
+  const bottomBarHeight = useBottomTabBarHeight();
   const navigation = useNavigation();
-  const { user, canSendInterest } = useAuth();
+  const { canSendInterest } = useAuth();
+  const {width} = useWindowDimensions();
+  const categoryWidth = Math.max(64, (width - 28 - 24) / TABS.length);
+  const [listHeight, setListHeight] = useState(0);
+
+  useFocusEffect(useCallback(() => {
+    StatusBar.setBarStyle('light-content');
+    return () => StatusBar.setBarStyle('dark-content');
+  }, []));
 
   const [selectedTab, setSelectedTab] = useState('matches');
 
@@ -177,13 +193,6 @@ export default function HomeScreen() {
   // Synchronous lock prevents rapid repeated actions.
   const actionBusyRef = useRef(false);
 
-  const currentUser = user || {};
-
-  const firstName = String(
-    currentUser.full_name || '',
-  )
-    .trim()
-    .split(/\s+/)[0];
 
   // -----------------------------------------
   // Update tab state
@@ -624,6 +633,15 @@ export default function HomeScreen() {
       setBusyMember(key);
 
       try {
+        // Nearby cards omit interest state; verify it before sending.
+        if (selectedTab === 'nearby' && existingStatus === undefined) {
+          const existing = await checkSentInterest(id);
+          if (existing.sent) {
+            notifyInterestChanged(id, existing.interest?.status ?? '0', existing.interest?.id ?? null);
+            openMember(member);
+            return;
+          }
+        }
         // Laravel SentInterestController::store expects
         // the numeric recipient members.id.
         const result = await sendHomeInterest(id);
@@ -711,7 +729,7 @@ export default function HomeScreen() {
 
       const key = String(id);
 
-      const previousStatus =
+      let previousStatus =
         Object.prototype.hasOwnProperty.call(
           shortlistOverridesRef.current,
           key,
@@ -723,6 +741,10 @@ export default function HomeScreen() {
       setBusyMember(key);
 
       try {
+        if (selectedTab === 'nearby' && member.is_shortlisted === undefined &&
+            !Object.prototype.hasOwnProperty.call(shortlistOverridesRef.current, key)) {
+          previousStatus = await checkShortlist(id);
+        }
         if (previousStatus) {
           await removeHomeShortlist(id);
         } else {
@@ -782,42 +804,8 @@ export default function HomeScreen() {
   // Header
   // -----------------------------------------
 
-  const renderHeader = () => (
-    <View>
-      <View style={styles.greetingRow}>
-        <View style={styles.greetingContent}>
-          <Text style={styles.brand}>
-            HimRishtey
-          </Text>
-
-          <Text style={styles.greeting}>
-            Hello{firstName ? `, ${firstName}` : ''}!
-          </Text>
-
-          <Text style={styles.subtitle}>
-            Let's find your perfect match today.
-          </Text>
-        </View>
-
-        <TouchableOpacity
-          style={styles.searchIconButton}
-          onPress={() => navigation.navigate('Search')}>
-          <AppIcon name="search" style={styles.searchIcon} />
-        </TouchableOpacity>
-      </View>
-
-      <TouchableOpacity
-        style={styles.searchBar}
-        onPress={() => navigation.navigate('Search')}>
-        <AppIcon name="search" style={styles.searchBarIcon} />
-
-        <Text style={styles.searchPlaceholder}>
-          Search by profile ID, location, caste...
-        </Text>
-
-        <AppIcon name="filters" style={styles.filterIcon} />
-      </TouchableOpacity>
-
+  const renderCategories = () => (
+      <View style={styles.discoveryPanel}>
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -831,19 +819,22 @@ export default function HomeScreen() {
               key={tab.id}
               onPress={() => setSelectedTab(tab.id)}
               activeOpacity={0.8}
-              style={[
-                styles.tab,
-                active && styles.activeTab,
-              ]}>
-              <AppIcon name={tab.icon} size={18} color={active ? colors.white : colors.primary} style={styles.tabIcon} />
+              accessibilityRole="tab"
+              accessibilityLabel={tab.title}
+              accessibilityState={{selected: active}}
+              style={[styles.tab, {width: categoryWidth}]}>
+              <View style={[styles.tabTile, active && styles.activeTab]}>
+                <AppIcon name={tab.icon} size={26} color={active ? colors.white : colors.textSecondary} />
+              </View>
 
               <Text
                 style={[
                   styles.tabText,
                   active && styles.activeTabText,
                 ]}>
-                {tab.title}
+                {{matches: 'Matches', recent: 'Recent', verified: 'Verified', shortlisted: 'Shortlisted'}[tab.id] || tab.title}
               </Text>
+              <View style={[styles.tabUnderline, active && styles.activeTabUnderline]} />
             </TouchableOpacity>
           );
         })}
@@ -854,11 +845,9 @@ export default function HomeScreen() {
           {activeTab.title}
         </Text>
 
-        <Text style={styles.sectionCount}>
-          {profiles.length} Loaded
-        </Text>
+
       </View>
-    </View>
+      </View>
   );
 
   // -----------------------------------------
@@ -975,16 +964,23 @@ export default function HomeScreen() {
   // -----------------------------------------
 
   return (
+    <SafeAreaView style={styles.screen} edges={['top']}>
+      <StatusBar barStyle="light-content" />
+      <DiscoverHeader navigation={navigation} />
+    <View style={styles.container}>
+      {renderCategories()}
     <FlatList
+      onLayout={event => setListHeight(event.nativeEvent.layout.height)}
       key={selectedTab}
-      style={styles.container}
-      contentContainerStyle={styles.listContent}
+      style={styles.membersList}
+      contentContainerStyle={[styles.listContent, {paddingBottom: bottomBarHeight + 28}]}
       data={profiles}
       keyExtractor={(item, index) =>
         memberKey(item) || String(index)
       }
       renderItem={({ item }) => (
         <HomeMemberCard
+          cardHeight={listHeight ? listHeight - bottomBarHeight - 16 : null}
           member={item}
           showMatchPercentage={selectedTab === 'matches'}
           matchPercentage={item.match_percentage}
@@ -1003,9 +999,7 @@ export default function HomeScreen() {
           onShortlist={() => handleShortlist(item)}
         />
       )}
-      ListHeaderComponent={renderHeader}
-      ListFooterComponent={renderFooter}
-      ListEmptyComponent={renderEmpty}
+      ListFooterComponent={profiles.length === 0 ? renderEmpty : renderFooter}
       onMomentumScrollBegin={() => {
         userScrolledRef.current = true;
       }}
@@ -1026,6 +1020,8 @@ export default function HomeScreen() {
       maxToRenderPerBatch={6}
       windowSize={7}
     />
+    </View>
+    </SafeAreaView>
   );
 }
 
@@ -1036,7 +1032,14 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    overflow: 'hidden',
     backgroundColor: colors.background,
+  },
+
+  membersList: {
+    flex: 1,
   },
 
   listContent: {
@@ -1045,103 +1048,35 @@ const styles = StyleSheet.create({
     flexGrow: 1,
   },
 
-  greetingRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingTop: 18,
-    paddingBottom: 16,
-  },
-
-  greetingContent: {
+  screen: {
     flex: 1,
-  },
-
-  brand: {
-    fontSize: 21,
-    fontWeight: '900',
-    color: colors.primaryDark,
-    marginBottom: 10,
-  },
-
-  greeting: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: colors.text,
-  },
-
-  subtitle: {
-    fontSize: 12,
-    color: colors.textSecondary,
-    marginTop: 4,
-  },
-
-  searchIconButton: {
-    width: 43,
-    height: 43,
-    borderRadius: 22,
-    backgroundColor: colors.white,
-    borderWidth: 1,
-    borderColor: colors.border,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginLeft: 12,
-  },
-
-  searchIcon: {
-    fontSize: 27,
-    color: colors.primary,
-  },
-
-  searchBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.white,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 13,
-    minHeight: 48,
-    paddingHorizontal: 13,
-    marginBottom: 16,
-  },
-
-  searchBarIcon: {
-    fontSize: 24,
-    color: colors.primary,
-    marginRight: 9,
-  },
-
-  searchPlaceholder: {
-    flex: 1,
-    fontSize: 12,
-    color: colors.textSecondary,
-  },
-
-  filterIcon: {
-    fontSize: 21,
-    color: colors.primary,
+    backgroundColor: colors.primary,
   },
 
   tabsScroll: {
-    marginHorizontal: -14,
-    marginBottom: 19,
+    marginBottom: 8,
   },
 
   tabsContent: {
     paddingHorizontal: 14,
-    gap: 9,
+    gap: 6,
   },
 
   tab: {
+    width: 82,
+    alignItems: 'center',
+  },
+
+  tabTile: {
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: '#EEEAF7',
     backgroundColor: colors.white,
-    borderRadius: 13,
-    width: 105,
-    minHeight: 68,
+    borderRadius: 24,
+    width: 48,
+    height: 48,
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 7,
+    padding: 9,
   },
 
   activeTab: {
@@ -1149,28 +1084,50 @@ const styles = StyleSheet.create({
     borderColor: colors.primary,
   },
 
-  tabIcon: {
-    color: colors.primary,
-    fontSize: 19,
-    marginBottom: 4,
-  },
-
   tabText: {
-    fontSize: 11,
-    color: colors.text,
-    fontWeight: '700',
+    fontSize: 12,
+    color: colors.textSecondary,
+    fontWeight: '600',
     textAlign: 'center',
+    marginTop: 5,
   },
 
   activeTabText: {
-    color: colors.white,
+    color: colors.primary,
+    fontWeight: '700',
+  },
+
+  tabUnderline: {
+    height: 3,
+    width: '90%',
+    borderRadius: 3,
+    marginTop: 5,
+    backgroundColor: 'transparent',
+  },
+
+  activeTabUnderline: {
+    backgroundColor: colors.primary,
   },
 
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 14,
+    gap: 12,
+    paddingHorizontal: 14,
+    paddingTop: 4,
+  },
+
+  discoveryPanel: {
+
+    overflow: 'hidden',
+    marginBottom: 12,
+    paddingTop: 10,
+    paddingBottom: 10,
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.white,
   },
 
   sectionTitle: {

@@ -1,3 +1,4 @@
+import {useBottomTabBarHeight} from '@react-navigation/bottom-tabs';
 import AppIcon from '../../components/AppIcon';
 
 import React, {
@@ -49,6 +50,7 @@ function AccountItem({ icon, title, subtitle, onPress, disabled = false }) {
 }
 
 export default function AccountScreen() {
+  const bottomBarHeight = useBottomTabBarHeight();
   const navigation = useNavigation();
   const { user, signOut, refreshUser } = useAuth();
 
@@ -109,17 +111,7 @@ export default function AccountScreen() {
   );
 
   const viewProfile = () => {
-    if (!member?.profile_id) {
-      Alert.alert(
-        'Profile unavailable',
-        'Unable to find your Profile ID.',
-      );
-      return;
-    }
-
-    navigation.getParent()?.navigate('MemberProfile', {
-      profileId: member.profile_id,
-    });
+    navigation.getParent()?.navigate('MyProfile');
   };
 
   const handleLogout = () => {
@@ -153,7 +145,7 @@ export default function AccountScreen() {
   return (
     <ScrollView
       style={styles.container}
-      contentContainerStyle={styles.content}
+      contentContainerStyle={[styles.content, {paddingBottom: bottomBarHeight + 35}]}
       showsVerticalScrollIndicator={false}
       refreshControl={
         <RefreshControl

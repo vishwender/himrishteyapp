@@ -1,5 +1,142 @@
 # HimRishtey task checklist
 
+### T1.1 bottom navigation transparency — 2026-10-24
+
+- Undid the white-outline change per request, restoring purple-filled active footer icons and removing outlineColor. Targeted AppIcon/MainTabs ESLint and scoped whitespace check PASS.
+
+- Active footer icons retain purple fill with white outlines through an opt-in outlineColor prop; inactive/default icons unchanged. Targeted AppIcon/MainTabs ESLint and scoped whitespace check PASS.
+
+- Added opt-in fill to AppIcon and passed bottom-tab focused state so active navigation icons fill with the selected purple color while inactive icons retain outlines. Default shared icon appearance unchanged. Targeted component/navigation ESLint and scoped whitespace check PASS; device visual check not repeated.
+
+- Corrected invisible transparency: bottom bar now overlays the scenes with 84% opaque white so scrolling content is actually visible behind it. Added measured bottom-tab-height padding to Discover, Search, Interests and Account scroll content so final items remain reachable; Discover card sizing subtracts the overlay height to preserve its initial fit.
+- Targeted five-file ESLint, Babel parsing and scoped whitespace check PASS. Restarted OnePlus app and scrolled cards under navigation; device screenshot confirms the card photo/buttons show through while navigation icons/labels stay fully opaque. End-of-list reachability on every tab and large fonts not yet exercised. No API mutations/native rebuild.
+
+- Set bottom navigation background to 90% opaque white; icons, labels and layout retain full opacity. Targeted MainTabs ESLint and scoped whitespace check PASS; device visual check not repeated.
+
+### T4.1 / T4.2 Search result card consistency — 2026-10-24
+
+- Replaced SearchScreen's horizontal result card with the shared HomeMemberCard portrait design (gradient/name/location/education and on-photo interest/shortlist controls). Removed obsolete result-card image/layout code; existing search fields/modes, validation, result count, pagination, loading/empty/error UI and profile navigation remain.
+- Added SearchMemberCard action adapter using existing confirmed interest/shortlist APIs. Reads status before mutating because search responses may omit it, confirms mutation responses, blocks duplicate taps and subscribes to shared cross-screen status events. No speculative endpoints, fabricated match percentages or live mutations.
+- `npm test -- --runInBand __tests__/SearchMemberCard.test.jsx`: PASS, 3 behavior tests for shared card/existing interest protection, existing shortlist removal, duplicate-tap prevention and synchronized acceptance. Targeted screen/adapter/test ESLint, Babel parsing and scoped whitespace check PASS. Existing test ignore rule unchanged. Device search-result/action smoke and native build NOT RUN; broader T4 acceptance remains open.
+
+### T0.3 / T4.2 Near Me category — 2026-10-24
+
+- Confirmed local Laravel routes/api.php and SearchController::nearby: authenticated GET /api/v1/search/nearby with existing Bearer token and X-App-Code header; query `{per_page:10,page:1}`. Returns `{success:true,data:{members:[{id,profile_id,full_name,photo,education,...}],pagination:{current_page:1,last_page:2,per_page:10,total:15}}}`. Requires profile city/state (422 with update-location message when missing); matches active, visible opposite-gender members by case-insensitive city/state and country when set. No GPS/distance contract or new permissions.
+- Added Near Me location-icon category using this route, adapting page numbers to the existing next-page token interface; existing loading/empty/error/retry/refresh behavior reused. Response schema/pagination validated. Nearby cards omit interest/shortlist state, so actions fetch the respective status before mutation rather than assuming a new interest/shortlist. No backend edits or live mutations.
+- Local nearby adapter regression: 4 tests PASS for pagination/final page, empty result, malformed/server failure and missing session. Targeted source/test ESLint, Babel parsing and scoped whitespace check PASS. Existing __tests__ ignore rule unchanged. Live authenticated Nearby and device pagination/action smoke NOT RUN; feature acceptance remains open.
+
+### T4.1 Discover tab cleanup — 2026-10-24
+
+- Fixed non-clickable categories after scrolling by moving the now-always-top category panel outside the virtualized member list. A sibling FlatList scrolls only profiles, preserving fixed category position, rounded container, state, refresh/pagination and card viewport sizing. Avoids translated sticky-header touch handling/clipping. Removed obsolete category-height measurement.
+- Targeted HomeScreen ESLint, Babel parsing and scoped whitespace check PASS. Device smoke PASS on OnePlus: scrolled Matches member list, tapped Recent icon at its fixed position, verified selected purple Recent/underline and Recently Joined results. No interest/shortlist mutations or native rebuild.
+
+- Removed the right-side Filter button and full search bar above categories per request, including unused rendering/styles/measurement state. Categories now start immediately beneath the purple app header; rounded list top, sticky behavior and remaining layout preserved. Updated card sizing to use the newly available viewport without subtracting the removed search area. Targeted HomeScreen ESLint, Babel parsing and scoped whitespace check PASS; device visual check not repeated.
+
+- Improved member-card visibility: compacted brand/search/category spacing, reduced category circles to 48 points and sized tab cells so all five fit on the connected phone. Card height now uses measured list viewport minus category/search heights and spacing, retaining a minimum and extra font-scale allowance. Preserved sticky categories, over-photo details/actions and pagination.
+- Verified on OnePlus after restart/loading: all five categories and the complete first card (photo, name/location/education, Send Interest and Shortlist) are visible above bottom navigation. Header/nearby regression suites PASS, 5 tests. Targeted ESLint, Babel parsing and scoped whitespace check PASS. Large-font/smaller-device layout checks remain pending; no API mutations or native rebuild.
+
+- Made category/results panel a sticky SectionList header: greeting scrolls away, panel stays beneath the fixed brand header, and member rows scroll underneath. Preserved category state, pagination, refresh and member actions. Empty/loading/error content is rendered in the section footer when no members exist because an empty section still contributes its sticky header. Targeted HomeScreen ESLint, Babel parsing and scoped whitespace check PASS. Device sticky-scroll/empty-state checks not yet run; no native dependencies or API changes.
+
+- Rounded the shared white category/results panel's top corners to 24 points with content clipping. Targeted HomeScreen ESLint and scoped whitespace check PASS.
+
+- Extended the white results panel to include Matches/Recent/Verified/Shortlisted tabs and results heading, with shared outer dividers and spacing before member cards. Targeted HomeScreen ESLint, Babel parsing and scoped whitespace check PASS; device visual check not repeated.
+
+- Added a full-width white results-heading strip, subtle top divider and extra spacing above member cards to distinguish header/category controls from results. Targeted HomeScreen ESLint and scoped whitespace check PASS; device visual check not repeated.
+
+- Made category icon tiles circular (60×60, radius 30); labels and selection underline preserved. Targeted HomeScreen ESLint and scoped whitespace check PASS.
+
+- Updated only category tab presentation to supplied mockup: rounded icon tiles, labels below (Matches/Recent/Verified/Shortlisted), purple selected tile/text and underline; added selected tab accessibility state. Existing category IDs, section headings, loading/actions and removed Viewed You remain unchanged. Targeted HomeScreen ESLint, Babel parsing and scoped whitespace check PASS; visual device check not repeated.
+
+- Removed Viewed You from the active Discover category configuration; existing backup file preserved. Targeted HomeScreen ESLint and scoped whitespace check PASS. Device check not repeated.
+
+### T3.1 dedicated My Profile screen — 2026-10-24
+
+- Added authenticated MyProfile stack route and routed both Account “View My Profile” buttons to it rather than searching for the signed-in member through the member-discovery endpoint. Uses existing context-owned GET /profile (+ existing activation lookup when required); no new endpoint or account mutation.
+- Screen includes photo with fallback, name/ID/location, completion, Edit My Profile and editable sections for About, Personal, Religion, Education/Career, Location, Family, Lifestyle and Partner Preferences. Uses existing field names/edit routes. Missing sections have explicit empty copy; cached data remains visible on failed refresh with Retry. Focus refresh and pull-to-refresh share a duplicate-request guard; inactive screen does not set local request state. No send-interest/shortlist controls on own profile.
+- `npm test -- --runInBand __tests__/MyProfileScreen.test.jsx`: PASS, 2 tests covering own-profile data, zero-valued fields, missing sections, edit routing and failed-refresh/retry with cached data. Tests are local: existing .gitignore ignores __tests__; no files staged or ignore rules changed.
+- Targeted ESLint on new screen, Account, navigator and test: PASS with 2 pre-existing navigator warnings. Prettier on new screen/test and scoped whitespace check PASS. Existing full-suite ESM parsing and unrelated full-lint errors remain separate. Native build/device own-profile smoke NOT RUN; no dependencies added. T3.1 remains open for complete backend/device acceptance.
+
+### T1.1 / T2.1 login illustration — 2026-10-24
+
+- Fixed oversized login artwork from supplied phone screenshot: replaced percentage-width/aspect-ratio sizing with explicit viewport-based width (window minus hero padding) and matching 3:2 height. Image can no longer retain its intrinsic width and overflow the hero. Targeted LoginScreen ESLint and scoped whitespace check PASS. Restarted the phone app after adding the sizing hook; screenshot was still on session bootstrap, so final signed-out visual verification remains pending. No session data cleared.
+
+- Generated an original illustration of an adult couple in Himalayan scenery using imagegen; bundled it at src/assets/images/login-couple.png and added a responsive 3:2 rounded hero image on Login. Adjusted hero spacing/type to accommodate it. Decorative image is excluded from accessibility focus and requires no network access. No auth behavior changes.
+- Targeted LoginScreen ESLint, Babel parsing and scoped whitespace check PASS. Inspected generated illustration; signed-out device/keyboard layout not exercised to preserve the current signed-in session. Native build not repeated.
+
+### T2.2 / T3.1 Account refresh loop — 2026-10-24
+
+- Root cause: AuthProvider recreated refreshUser after every setUser. Account's useFocusEffect depends on refreshProfile, which depends on refreshUser, so each completed fetch immediately started another refresh while focused. Stabilized refreshUser with useCallback and a functional user update.
+- `npm test -- --runInBand __tests__/AuthContext.test.jsx`: PASS, one behavior regression verifies a focus-like effect runs once after session refresh and manual refresh remains available without restarting it. Targeted ESLint of context, Account screen and regression test plus scoped whitespace check PASS.
+- Adding the hook during Fast Refresh temporarily triggered a retained hook-order error; fully restarted the development app. Opened Account on the connected OnePlus: profile, completion and menus loaded, with no persistent spinner. No API mutations or native rebuild. Existing full-suite Jest dependency parsing blocker remains separate.
+
+### T1.1 / T1.3 Discover app header — 2026-10-24
+
+- Cross-checked latest header against supplied reference and actual phone screenshots. Added diagonal purple gradient accents, search/bell/avatar layout, rounded search area immediately below branding, profile avatar in dropdown identity row, Settings label and Filter shortcut. Removed the large greeting block to match reference composition. Retained requested circular tabs, excluded Viewed You and preserved existing member cards/sticky behavior. Bell reports notifications unavailable; no unread badge or backend feed invented. Filter/search use existing Search screen.
+- Verified revised header and open dropdown visually on connected OnePlus. Local header navigation regression PASS after mocking decorative Bell ESM import; targeted ESLint, Babel parsing and scoped whitespace check PASS. No member/account mutations, logout or native rebuild performed.
+
+- Updated header to the supplied purple reference: white wordmark/tagline, search shortcut and circular actual account photo (icon fallback) with dropdown indicator. Profile dropdown shows signed-in name/ID and routes to My Profile, Membership, Account & Settings; Logout uses confirmation and existing signOut. Outside tap/Android back dismiss the modal. Menu placement follows measured header height and safe-area inset. Sticky categories and member cards preserved. No notification badge/feed invented; none is currently integrated.
+- Added local `__tests__/DiscoverHeader.test.jsx`: PASS, verifies search route, dropdown expanded state and MyProfile stack route/dismissal. Targeted header/Home/test ESLint, Babel parsing and scoped whitespace check PASS. Existing ignore rule excludes local tests from Git. Restarted development app for preview; final header/menu device visual check and logout not exercised. No native dependencies/API changes.
+
+- Greeting refinement: smaller personalized purple welcome line, prominent wrapping headline “Your next chapter starts here.” and supporting “Find someone who feels like home.” copy with consistent vertical spacing. Targeted HomeScreen ESLint, Babel parsing and scoped whitespace check PASS; device visual check not repeated.
+
+- Added a fixed white brand header above the Discover list: purple heart mark, HimRishtey wordmark, short tagline and accessible 48-point Account shortcut. Personalized greeting stays in scroll content; Search remains in the bottom tab. Added top SafeAreaView and dark status-bar text for readable system icons and proper header inset. No dependencies/API changes.
+- Targeted HomeScreen ESLint, Babel parsing and scoped whitespace check PASS. Reloaded connected OnePlus A5000 and inspected a screenshot: header, safe-area/status icons, greeting, category tabs and cards render correctly. Account shortcut navigation and larger font-scale checks not exercised; no native rebuild. Broader T1.1/T1.3 acceptance remains open.
+
+### T1.3 / T4.2 simplify search entry — 2026-10-24
+
+- Removed both duplicate Discover header search controls (round icon and search/filter bar) and their unused styles. The persistent bottom Search tab is now the single search entry; Discover retains greeting, category tabs and profiles. Search screen and its existing filters are unchanged.
+- Targeted HomeScreen ESLint, Babel parsing and scoped `git diff --check`: PASS. Device visual check not repeated; no API or native changes.
+
+### T1.1 / T4.1 portrait member card — 2026-10-24
+
+- Removed occupation and its icon per latest request; education remains. Targeted component ESLint and scoped whitespace check PASS.
+
+- Education and occupation now sit side by side with their existing icons, flexible equal-width cells and wrapping text. Targeted component ESLint, Prettier and scoped whitespace check PASS; device visual check not repeated.
+
+- Removed the height detail and its ruler icon per latest request; education and occupation remain. Targeted component ESLint and scoped whitespace check PASS.
+
+- Increased portrait height to 1.55 times available width (480–640 points before font-scale allowance). Added available height, education and occupation below location using existing ruler, graduation-cap and briefcase AppIcon mappings, explicit accessibility labels and wrapping text; missing fields are omitted. Actions remain inside the image. Targeted ESLint, Prettier, Babel parsing and scoped whitespace check PASS. Device visual/large-font checks not repeated.
+
+- Moved Send Interest and Shortlist into the portrait's bottom information overlay below location, removing the separate white footer. Kept primary interest styling and made shortlist translucent with white text/icons. Profile navigation and action buttons are sibling press targets to avoid nested button activation; existing callbacks/status/busy behavior retained. Targeted ESLint, Prettier, Babel parsing and scoped whitespace check PASS. Issued phone reload; action mutations and large-font interaction not exercised.
+
+- Replaced the flat name-panel tint with the portrait's continuous gradient, fading from transparent at 35% through progressively darker stops to 65% opacity at the bottom. Removed unused tint overlay/styles to avoid a visible panel boundary. Targeted ESLint, Prettier and scoped whitespace check PASS; device visual check not repeated.
+
+- Removed the white top border from the translucent name panel per request. Targeted component ESLint and scoped whitespace check PASS; device visual check not repeated.
+
+- Removed the duplicate blurred portrait after the user reported full-image blur. The card now renders one unblurred photo and a full-width translucent name panel with subtle border, retaining the gradient for white text legibility. Removed blur-specific measurement state/styles. Targeted ESLint, Prettier and scoped whitespace check PASS; device visual check not repeated.
+
+- Expanded the frosted name overlay edge-to-edge at the portrait bottom per request; removed inset/radius, retained a subtle top border, and realigned its blurred portrait layer to full width. Targeted ESLint and scoped whitespace check PASS; visual check not repeated.
+
+- Reference-based frosted name panel: inset rounded overlay with a clipped, blurred copy of the existing portrait, translucent dark tint and subtle white border; retains ID/name/age/location and existing actions. Uses React Native Image blurRadius with no new native dependency. Aligns the blurred image to the underlying portrait using measured panel width. Targeted ESLint, Prettier and scoped whitespace check PASS; issued device reload for preview. Broader font-scale/device acceptance remains open.
+
+- Corrected the separate band below photos: removed portrait top padding, assigned the photo the explicit portrait height, and absolutely positioned the transparent profile information at the bottom of the photo. Preserved the subtle gradient behind text. Verified on connected OnePlus after reload: the image now extends behind profile ID/name/location with no separate name panel, and action buttons remain below. Targeted ESLint and scoped whitespace check PASS. No API mutation or native rebuild.
+
+- Name-overlay transparency adjustment: reduced gradient opacity at 72% from 0.48 to 0.28 and at the bottom from 0.94 to 0.68 so the portrait remains visible behind white profile text. Targeted component ESLint and scoped whitespace check PASS; device visual check not repeated.
+
+- Blank-screen fix verified on OnePlus A5000: RN 0.87.1 StyleSheetExports exposes `absoluteFill` but no `absoluteFillObject`. Spreading the missing property left photo/placeholder/gradient in normal layout flow. Replaced all three card references with `StyleSheet.absoluteFill`; constrained portrait/SVG height explicitly, including font-scale allowance. Before screenshot reproduced the blank Discover area; after reload and scroll, device screenshot shows member photo, ID/name/age/location, match badge, placeholder and both action buttons. No API mutations performed. Targeted ESLint, Prettier and scoped whitespace check PASS. Native build not repeated for this JS change; broader accessibility/mutation acceptance remains open.
+
+- Design refinement: replaced the hard rectangular name panel with a smooth SVG gradient using the existing react-native-svg dependency; unified portrait/card corners and removed the excess gap above actions. Larger action text wraps rather than truncates. Portrait uses minimum height and normal-flow information so font scaling can expand the card. Failed photo URLs fall back to the existing user placeholder. Preserved single-column layout, profile navigation, actual badges and interest/shortlist semantics; religion/caste/occupation remain removed.
+- Refinement verification: component Prettier, ESLint, Babel parsing and scoped `git diff --check` PASS. Native/device visual checks NOT RUN; existing full-suite Jest dependency parsing blocker remains.
+
+- Latest requested card revision: removed religion, caste and occupation, their icons and unused summary styles. Name/age/location, ID, badges and actions remain. Targeted component ESLint and scoped `git diff --check`: PASS. Device visual check not run.
+
+- Follow-up: moved religion and caste into the name overlay directly below location, using BookOpen and Users outline icons and explicit accessible text labels. Occupation remains below the portrait. Targeted ESLint, Babel parsing and scoped whitespace check: PASS; device visual check not run.
+
+- Follow-up: card summary displays religion and caste; removed height and education per user request, retaining occupation. Targeted component ESLint and scoped `git diff --check`: PASS. Device visual check not repeated.
+
+- Updated the active Home/Discover HomeMemberCard to follow the supplied photo-led reference in a single-column list: full-width rounded portrait, match badge at top left, actual verification badge at top right, and name/age/location on a dark translucent bottom panel. Retained profile ID, secondary details, interest states, activation behavior and shortlist actions. No fabricated online/distance/match values or dependencies.
+- Acceptance in source: one member per existing FlatList row; portrait height adapts to window width; action controls retain accessible labels and a minimum 48-point height.
+- Targeted ESLint, Babel parsing and scoped `git diff --check`: PASS. Device visual/font-scaling checks and native build NOT RUN. Existing full-suite Jest dependency parsing blocker remains; product tasks remain open pending visual and behavioral verification.
+
+### T1.4 USB API connectivity — 2026-10-24
+
+- Connected device: OnePlus A5000 (`21cf0e18`). Device DNS resolves `himrishtey-production.ddev.site` to `127.0.0.1`, directing the original URL to the phone rather than the Mac.
+- `docker port ddev-himrishtey-production-web`: HTTP is bound to Mac `127.0.0.1:51431`. Configured `adb -s 21cf0e18 reverse tcp:8082 tcp:51431` and changed development API base URL to `http://127.0.0.1:8082/api/v1`. No transport policy or backend changes.
+- Device `curl` to `/api/v1/profile` with JSON accept and X-App-Code headers: PASS, HTTP 401 JSON `Unauthenticated.` as expected without credentials. This verifies phone-to-Laravel connectivity, not login or authenticated feature contracts.
+- `./node_modules/.bin/eslint src/config/api.js` and `git diff --check -- src/config/api.js`: PASS. Issued React Native reload broadcast. Login UI verification remains pending; no credentials used or API mutations performed.
+- USB forwarding must be restored after disconnect/device restart; if DDEV recreates the container, obtain the current HTTP host port with `docker port ddev-himrishtey-production-web` and repeat the reverse command. Port 8082 is the phone-side development port; Metro retains 8081.
+- Full lint remains blocked by 8 existing errors; full Jest remains blocked by React Navigation ESM parsing (checked earlier today). Native build not repeated for this URL-only change. T1.4 remains open for broader adapter acceptance.
+
 Snapshot: 2026-10-16. `[x]` means the stated activity has evidence; `[ ]` means planned, unverified or blocked. Product work remains unchecked. Record command/device/environment, result and date when closing an implementation task. Phase acceptance and dependencies are in ROADMAP.md.
 
 ## Planning inspection

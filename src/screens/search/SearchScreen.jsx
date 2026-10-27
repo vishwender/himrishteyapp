@@ -1,4 +1,5 @@
 
+import {useBottomTabBarHeight} from '@react-navigation/bottom-tabs';
 import React, {
   useCallback,
   useEffect,
@@ -11,7 +12,6 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  Image,
   FlatList,
   ActivityIndicator,
   RefreshControl,
@@ -27,7 +27,7 @@ import {
   findByProfileId,
 } from '../../api/searchApi';
 
-import { getProfileImage } from '../../config/images';
+import SearchMemberCard from '../../components/home/SearchMemberCard';
 import colors from '../../theme/colors';
 
 const MODES = [
@@ -96,98 +96,8 @@ function SearchInput({
   );
 }
 
-function ProfileCard({ member, onPress }) {
-  const photo = member?.photo
-    ? getProfileImage(member.photo)
-    : null;
-
-  const initials = String(member?.full_name || '?')
-    .trim()
-    .split(/\s+/)
-    .slice(0, 2)
-    .map(word => word.charAt(0))
-    .join('')
-    .toUpperCase();
-
-  const location = [
-    member?.city_living_in,
-    member?.state_living_in,
-  ]
-    .filter(Boolean)
-    .join(', ');
-
-  const details = [
-    member?.age != null
-      ? `${member.age} yrs`
-      : null,
-    member?.height,
-    member?.religion,
-  ]
-    .filter(Boolean)
-    .join('  •  ');
-
-  return (
-    <TouchableOpacity
-      style={styles.memberCard}
-      activeOpacity={0.8}
-      onPress={onPress}>
-
-      <View style={styles.imageWrapper}>
-        {photo ? (
-          <Image
-            source={{ uri: photo }}
-            style={styles.memberImage}
-            resizeMode="cover"
-          />
-        ) : (
-          <Text style={styles.initials}>
-            {initials}
-          </Text>
-        )}
-      </View>
-
-      <View style={styles.memberInfo}>
-        <Text
-          style={styles.memberName}
-          numberOfLines={1}>
-          {member.full_name || 'Member'}
-        </Text>
-
-        <Text style={styles.profileId}>
-          {member.profile_id}
-        </Text>
-
-        {details ? (
-          <Text
-            style={styles.memberDetails}
-            numberOfLines={2}>
-            {details}
-          </Text>
-        ) : null}
-
-        <Text
-          style={styles.location}
-          numberOfLines={2}>
-          {location || 'Location not specified'}
-        </Text>
-
-        {member?.occupation ? (
-          <Text
-            style={styles.occupation}
-            numberOfLines={1}>
-            {member.occupation}
-          </Text>
-        ) : null}
-
-        <Text style={styles.viewProfile}>
-          View Profile →
-        </Text>
-      </View>
-    </TouchableOpacity>
-  );
-}
-
 export default function SearchScreen() {
+  const bottomBarHeight = useBottomTabBarHeight();
   const navigation = useNavigation();
 
   const [mode, setMode] = useState('quick');
@@ -504,9 +414,9 @@ export default function SearchScreen() {
 
   const renderMember = useCallback(
     ({ item }) => (
-      <ProfileCard
+      <SearchMemberCard
         member={item}
-        onPress={() => openProfile(item.profile_id)}
+        onViewProfile={() => openProfile(item.profile_id)}
       />
     ),
     [openProfile],
@@ -729,7 +639,7 @@ export default function SearchScreen() {
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="on-drag"
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.listContent}
+        contentContainerStyle={[styles.listContent, {paddingBottom: bottomBarHeight + 45}]}
         onEndReached={loadMore}
         onEndReachedThreshold={0.35}
         refreshControl={
@@ -939,70 +849,6 @@ const styles = StyleSheet.create({
   resultsCount: {
     fontSize: 12,
     color: colors.textSecondary,
-  },
-  memberCard: {
-    flexDirection: 'row',
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: '#EEEAF7',
-    borderRadius: 16,
-    padding: 12,
-    marginBottom: 12,
-  },
-  imageWrapper: {
-    width: 107,
-    height: 135,
-    borderRadius: 12,
-    backgroundColor: '#EDE8FF',
-    overflow: 'hidden',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  memberImage: {
-    width: '100%',
-    height: '100%',
-  },
-  initials: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: colors.primary,
-  },
-  memberInfo: {
-    flex: 1,
-    paddingLeft: 13,
-    justifyContent: 'center',
-  },
-  memberName: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: colors.text,
-  },
-  profileId: {
-    fontSize: 12,
-    color: colors.primary,
-    marginTop: 4,
-    fontWeight: '600',
-  },
-  memberDetails: {
-    fontSize: 12,
-    color: colors.text,
-    marginTop: 7,
-  },
-  location: {
-    fontSize: 12,
-    color: colors.textSecondary,
-    marginTop: 5,
-  },
-  occupation: {
-    fontSize: 11,
-    color: colors.textSecondary,
-    marginTop: 4,
-  },
-  viewProfile: {
-    color: colors.primary,
-    fontSize: 12,
-    fontWeight: '800',
-    marginTop: 10,
   },
   loader: {
     paddingVertical: 25,

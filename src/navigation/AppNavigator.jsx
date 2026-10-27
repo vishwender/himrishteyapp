@@ -30,6 +30,7 @@ import MembershipScreen from '../screens/account/MembershipScreen';
 import WalletScreen from '../screens/account/WalletScreen';
 import WalletTransactionsScreen from '../screens/account/WalletTransactionsScreen';
 import MainTabs from './MainTabs';
+import MyProfileScreen from '../screens/account/MyProfileScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -66,6 +67,12 @@ export default function AppNavigator() {
                 headerShown: true,
                 title: 'Member Profile',
               }}
+            />
+
+            <Stack.Screen
+              name="MyProfile"
+              component={MyProfileScreen}
+              options={{title: 'My Profile'}}
             />
 
             <Stack.Screen

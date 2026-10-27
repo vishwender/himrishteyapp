@@ -22,6 +22,19 @@ With Metro running, open a new terminal window/pane from the root of your React 
 
 ### Android
 
+On macOS, configure the SDK in the terminal used to launch Android:
+
+```sh
+export ANDROID_HOME="$HOME/Library/Android/sdk"
+export PATH="$ANDROID_HOME/platform-tools:$ANDROID_HOME/emulator:$PATH"
+```
+
+Add these exports to `~/.zshrc` to keep them for future terminals. Open an
+Android Virtual Device from Android Studio's Device Manager, then confirm
+`adb devices` lists it as `device` before running the app. Gradle can also
+locate the SDK through the ignored `android/local.properties` file containing
+`sdk.dir=/absolute/path/to/Android/sdk`.
+
 ```sh
 # Using npm
 npm run android

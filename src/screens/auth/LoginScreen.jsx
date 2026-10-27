@@ -2,6 +2,7 @@ import React, {useState} from 'react';
 import {
   View,
   Text,
+  Image,
   TextInput,
   TouchableOpacity,
   ScrollView,
@@ -11,6 +12,7 @@ import {
   StatusBar,
   Alert,
   ActivityIndicator,
+  useWindowDimensions,
 } from 'react-native';
 
 import {loginMember, getAuthError} from '../../api/authApi';
@@ -20,6 +22,8 @@ import colors from '../../theme/colors';
 
 
 export default function LoginScreen({navigation}) {
+  const {width} = useWindowDimensions();
+  const heroImageWidth = Math.max(1, width - 52);
   const {signIn} = useAuth();
 
   const [loginMode, setLoginMode] = useState('password');
@@ -115,6 +119,16 @@ export default function LoginScreen({navigation}) {
           <Text style={styles.brandSubtitle}>
             Himachali Matrimonial
           </Text>
+
+          <Image
+            source={require('../../assets/images/login-couple.png')}
+            style={[
+              styles.heroImage,
+              {width: heroImageWidth, height: heroImageWidth / 1.5},
+            ]}
+            resizeMode="cover"
+            accessible={false}
+          />
 
           <View style={styles.heroContent}>
             <Text style={styles.heroTitle}>
@@ -273,7 +287,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#EDE9FF',
     paddingHorizontal: 26,
     paddingTop: 42,
-    paddingBottom: 54,
+    paddingBottom: 44,
   },
   brand: {
     fontSize: 35,
@@ -289,12 +303,16 @@ const styles = StyleSheet.create({
     marginTop: 3,
   },
   heroContent: {
-    marginTop: 42,
+    marginTop: 20,
+  },
+  heroImage: {
+    borderRadius: 20,
+    marginTop: 22,
   },
   heroTitle: {
-    fontSize: 36,
+    fontSize: 30,
     fontWeight: '800',
-    lineHeight: 44,
+    lineHeight: 37,
     color: colors.text,
   },
   heroDescription: {
