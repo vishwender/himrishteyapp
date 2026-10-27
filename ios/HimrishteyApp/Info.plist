@@ -34,6 +34,10 @@
 		<key>NSAllowsLocalNetworking</key>
 		<true/>
 	</dict>
+	<key>NSCameraUsageDescription</key>
+	<string>Take a photo to use as your profile picture.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Choose a photo to use as your profile picture.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string></string>
 	<key>UILaunchStoryboardName</key>

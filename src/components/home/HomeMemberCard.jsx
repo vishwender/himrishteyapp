@@ -85,6 +85,8 @@ export default function HomeMemberCard({
   const { width, fontScale } = useWindowDimensions();
   const gradientId = `portrait-${useId().replace(/:/g, '')}`;
   const [failedPhoto, setFailedPhoto] = useState(null);
+  const [photoWidth, setPhotoWidth] = useState(0);
+  const [photoSize, setPhotoSize] = useState(null);
   const portraitHeight =
     Math.max(300, cardHeight || Math.min(520, (width - 28) * 1.3)) +
     Math.max(0, fontScale - 1) * 140;
@@ -121,6 +123,18 @@ export default function HomeMemberCard({
 
   // Member photo
   const imageUrl = member?.photo ? getProfileImage(member.photo) : null;
+  // Cover the card while anchoring the original photo's top edge so heads
+  // are not cropped by the default vertically centered cover positioning.
+  const photoRatio =
+    photoSize?.uri === imageUrl && photoSize.width > 0 && photoSize.height > 0
+      ? photoSize.width / photoSize.height
+      : null;
+  const renderedWidth = photoRatio
+    ? Math.max(photoWidth, portraitHeight * photoRatio)
+    : photoWidth;
+  const renderedHeight = photoRatio
+    ? renderedWidth / photoRatio
+    : portraitHeight;
 
   // Match percentage
   const score = Number(matchPercentage);
@@ -185,12 +199,31 @@ export default function HomeMemberCard({
       <View style={styles.cardContent}>
         <View style={styles.mainRow}>
           {/* Member Photo */}
-          <View style={[styles.photoContainer, { height: portraitHeight }]}>
+          <View
+            style={[styles.photoContainer, { height: portraitHeight }]}
+            onLayout={event => setPhotoWidth(event.nativeEvent.layout.width)}
+          >
             {imageUrl && failedPhoto !== imageUrl ? (
               <Image
                 source={{ uri: imageUrl }}
-                style={[styles.photo, { height: portraitHeight }]}
+                style={[
+                  styles.photo,
+                  {
+                    width: renderedWidth || '100%',
+                    height: renderedHeight,
+                    left: (photoWidth - renderedWidth) / 2,
+                  },
+                ]}
                 resizeMode="cover"
+                onLoad={({ nativeEvent }) => {
+                  const { width: imageWidth, height: imageHeight } =
+                    nativeEvent.source;
+                  setPhotoSize({
+                    uri: imageUrl,
+                    width: imageWidth,
+                    height: imageHeight,
+                  });
+                }}
                 onError={() => setFailedPhoto(imageUrl)}
               />
             ) : (
@@ -429,8 +462,8 @@ const styles = StyleSheet.create({
   },
 
   photo: {
-    ...StyleSheet.absoluteFill,
-    width: '100%',
+    position: 'absolute',
+    top: 0,
   },
 
   photoPlaceholder: {

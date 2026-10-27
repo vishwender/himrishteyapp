@@ -1,3 +1,5 @@
+import { SIBLING_OPTIONS } from '../../../constants/profileOptions';
+import SelectField from '../../../components/SelectField';
 
 import React, { useEffect, useMemo, useState } from 'react';
 
@@ -22,25 +24,56 @@ const GROUPS = [
     {
         title: 'Family Information',
         fields: [
-            { key: 'family_type', label: 'Family Type', maxLength: 100, placeholder: 'e.g. Nuclear, Joint' },
-            { key: 'family_status', label: 'Family Status', maxLength: 100, placeholder: 'Enter family status' },
-            { key: 'family_income', label: 'Family Income', maxLength: 100, placeholder: 'Enter family income or range' },
+            {
+                key: 'family_type',
+                label: 'Family Type',
+                maxLength: 100,
+                placeholder: 'e.g. Nuclear, Joint',
+            },
+            {
+                key: 'family_status',
+                label: 'Family Status',
+                maxLength: 100,
+                placeholder: 'Enter family status',
+            },
+            {
+                key: 'family_income',
+                label: 'Family Income',
+                maxLength: 100,
+                placeholder: 'Enter family income or range',
+            },
         ],
     },
     {
         title: 'Parents',
         fields: [
             { key: 'father_name', label: "Father's Name", maxLength: 255 },
-            { key: 'father_occupation', label: "Father's Occupation", maxLength: 255 },
+            {
+                key: 'father_occupation',
+                label: "Father's Occupation",
+                maxLength: 255,
+            },
             { key: 'mother_name', label: "Mother's Name", maxLength: 255 },
-            { key: 'mother_occupation', label: "Mother's Occupation", maxLength: 255 },
+            {
+                key: 'mother_occupation',
+                label: "Mother's Occupation",
+                maxLength: 255,
+            },
         ],
     },
     {
         title: 'Siblings',
         fields: [
-            { key: 'no_of_brothers', label: 'Number of Brothers', numeric: true },
-            { key: 'married_brothers', label: 'Married Brothers', numeric: true },
+            {
+                key: 'no_of_brothers',
+                label: 'Number of Brothers',
+                numeric: true,
+            },
+            {
+                key: 'married_brothers',
+                label: 'Married Brothers',
+                numeric: true,
+            },
             { key: 'no_of_sisters', label: 'Number of Sisters', numeric: true },
             { key: 'married_sisters', label: 'Married Sisters', numeric: true },
         ],
@@ -89,7 +122,26 @@ function errorMessage(error) {
     );
 }
 
-function FormField({ field, value, onChangeText }) {
+function FormField({
+    field,
+    value,
+    onChangeText,
+    disabled = false,
+    options = SIBLING_OPTIONS,
+}) {
+    if (field.numeric)
+        return (
+            <View style={styles.field}>
+                <Text style={styles.label}>{field.label}</Text>
+                <SelectField
+                    label={field.label}
+                    value={value}
+                    options={options}
+                    disabled={disabled}
+                    onChange={onChangeText}
+                />
+            </View>
+        );
     return (
         <View style={styles.field}>
             <Text style={styles.label}>{field.label}</Text>
@@ -104,10 +156,7 @@ function FormField({ field, value, onChangeText }) {
                 multiline={Boolean(field.multiline)}
                 textAlignVertical={field.multiline ? 'top' : 'center'}
                 autoCorrect={false}
-                style={[
-                    styles.input,
-                    field.multiline && styles.multiline,
-                ]}
+                style={[styles.input, field.multiline && styles.multiline]}
             />
 
             {field.multiline ? (
@@ -123,7 +172,10 @@ export default function EditFamilyScreen() {
     const navigation = useNavigation();
     const { user, refreshUser } = useAuth();
 
-    const member = user?.data?.member || user?.member || user || {};
+    const member = useMemo(
+        () => user?.data?.member || user?.member || user || {},
+        [user],
+    );
 
     const initial = useMemo(() => {
         const values = {};
@@ -133,20 +185,7 @@ export default function EditFamilyScreen() {
         });
 
         return values;
-    }, [
-        member?.family_type,
-        member?.family_status,
-        member?.family_income,
-        member?.father_name,
-        member?.father_occupation,
-        member?.mother_name,
-        member?.mother_occupation,
-        member?.no_of_brothers,
-        member?.married_brothers,
-        member?.no_of_sisters,
-        member?.married_sisters,
-        member?.about_family,
-    ]);
+    }, [member]);
 
     const [form, setForm] = useState(initial);
     const [saving, setSaving] = useState(false);
@@ -156,10 +195,23 @@ export default function EditFamilyScreen() {
     }, [initial]);
 
     const updateField = (key, value) => {
-        setForm(previous => ({
-            ...previous,
-            [key]: value,
-        }));
+        setForm(previous => {
+            const next = { ...previous, [key]: value };
+            const marriedKey =
+                key === 'no_of_brothers'
+                    ? 'married_brothers'
+                    : key === 'no_of_sisters'
+                    ? 'married_sisters'
+                    : null;
+            if (
+                marriedKey &&
+                value !== '' &&
+                Number(next[marriedKey] || 0) > Number(value)
+            )
+                next[marriedKey] = value;
+            if (marriedKey && value === '0') next[marriedKey] = '0';
+            return next;
+        });
     };
 
     const handleSave = async () => {
@@ -191,10 +243,10 @@ export default function EditFamilyScreen() {
         for (const key of NUMBER_KEYS) {
             const raw = asText(form[key]).trim();
 
-            if (raw !== '' && (!/^\d+$/.test(raw) || Number(raw) > 20)) {
+            if (raw !== '' && (!/^\d+$/.test(raw) || Number(raw) > 5)) {
                 Alert.alert(
                     'Invalid Number',
-                    'Sibling counts must be whole numbers between 0 and 20.',
+                    'Sibling counts must be whole numbers between 0 and 5.',
                 );
                 return;
             }
@@ -277,8 +329,8 @@ export default function EditFamilyScreen() {
             style={styles.container}
             contentContainerStyle={styles.content}
             showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled">
-
+            keyboardShouldPersistTaps="handled"
+        >
             <View style={styles.heading}>
                 <Text style={styles.title}>Family Details</Text>
                 <Text style={styles.subtitle}>
@@ -294,6 +346,26 @@ export default function EditFamilyScreen() {
                         <FormField
                             key={field.key}
                             field={field}
+                            disabled={
+                                saving ||
+                                (field.key === 'married_brothers' &&
+                                    form.no_of_brothers === '0') ||
+                                (field.key === 'married_sisters' &&
+                                    form.no_of_sisters === '0')
+                            }
+                            options={
+                                field.key === 'married_brothers'
+                                    ? SIBLING_OPTIONS.slice(
+                                          0,
+                                          Number(form.no_of_brothers || 5) + 1,
+                                      )
+                                    : field.key === 'married_sisters'
+                                    ? SIBLING_OPTIONS.slice(
+                                          0,
+                                          Number(form.no_of_sisters || 5) + 1,
+                                      )
+                                    : SIBLING_OPTIONS
+                            }
                             value={form[field.key] || ''}
                             onChangeText={value =>
                                 updateField(field.key, value)
@@ -304,20 +376,15 @@ export default function EditFamilyScreen() {
             ))}
 
             <TouchableOpacity
-                style={[
-                    styles.saveButton,
-                    saving && styles.disabledButton,
-                ]}
+                style={[styles.saveButton, saving && styles.disabledButton]}
                 onPress={handleSave}
                 disabled={saving}
-                activeOpacity={0.8}>
-
+                activeOpacity={0.8}
+            >
                 {saving ? (
                     <ActivityIndicator color="#FFFFFF" />
                 ) : (
-                    <Text style={styles.saveText}>
-                        Save Family Details
-                    </Text>
+                    <Text style={styles.saveText}>Save Family Details</Text>
                 )}
             </TouchableOpacity>
         </ScrollView>

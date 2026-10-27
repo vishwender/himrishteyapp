@@ -1,5 +1,159 @@
 # HimRishtey task checklist
 
+### T3.2 remove obsolete height review blocker — 2026-10-27
+
+- Removed the earlier review-required save guard/message after user restricted selector to .0–.9. Current choices serialize to existing numeric API format (5.9, then 6); 10/11-inch values cannot be newly submitted. No backend/schema changes needed for this restricted format; review SQL/controller artifacts remain unapplied.
+- Whole-foot numeric API values 4–7 now parse as feet on reopening, not old website slider positions. Other legacy position decoding retained. Existing stored values untouched; legacy numeric website codes 4–7 are intrinsically ambiguous and no data conversion is attempted.
+- Targeted ESLint/Babel/scoped diff PASS. Edit/range suites PASS, 2 suites / 17 tests, including numeric save payload, 5.9→6 request and whole-foot reload conversion. No database commands, live submissions, backend edits or migrations. Device save/reopen acceptance not performed under no-DB-changes constraint.
+
+### T3.2 height selector skips .10 and .11 — 2026-10-27
+
+- Partner-height slider now has 31 display positions: 4.0–4.9, 5.0–5.9, 6.0–6.9, 7.0. It moves directly from 5.9 to 6.0 (and similarly at each foot). Internal values remain total inches through explicit position mapping; no storage or backend changes. Existing legacy 10/11-inch values round up only for selector display, without writing saved data.
+- Existing purple theme, typography, dual handles and pending-backend height-save guard retained. Own-height dropdown unchanged.
+- Targeted ESLint/Babel/scoped diff PASS. `npm test -- --runInBand tests/editProfileForms.test.jsx tests/DualRangeField.test.jsx`: PASS, 2 suites / 15 tests, including .9→next-foot and no .10/.11 display positions. No database operations or API mutations; device visual check not repeated.
+
+### T3.2 Looking For Any option — 2026-10-27
+
+- Added Any as first Looking For dropdown choice, retaining existing marital-status options. Existing string-valued API adapter unchanged.
+- Targeted ESLint, editProfileForms regression suite and `git diff --check`: PASS. No database/API mutations.
+
+### T1.1 / T3.2 range typography consistency — 2026-10-27
+
+- Matched DualRangeField heading to partner-form labels (13-point, weight 700, 8-point bottom spacing). Tick labels use form hint typography (11-point, 17-point line height). Theme and range behavior preserved.
+- Targeted ESLint, Babel transform and `git diff --check`: PASS. No database/API/native changes; device visual check not repeated for typography-only edit.
+
+### T1.1 / T3.2 range selector theme correction — 2026-10-27
+
+- Replaced screenshot-specific pink/blue/gray colors in DualRangeField with existing app tokens: purple primary handles/fill, primaryLight rail, text/textSecondary heading/ticks. Two-handle layout and behavior unchanged.
+- Targeted ESLint, Babel transform and `git diff --check`: PASS. No database/API/native changes; device visual check not repeated for color-token-only edit.
+
+### T3.2 paired range selectors matching screenshot — 2026-10-27
+
+- Replaced separate partner minimum/maximum controls with shared DualRangeField for Age, Height (ft) and Annual Income (lpa). Screenshot styling: magenta handles/selected track, light-blue remaining rail, small/major ticks and numeric labels; heading shows current pair. Existing dropdowns/sections retained.
+- Age 18–70, height 48–84 total inches (4–7 ft, shown as feet.inches labels), partner income 0–50 lpa as screenshot. Each handle is adjustable by drag or accessibility increment/decrement; endpoints cannot cross. Nearest-handle choice and overlap separation supported; measured track location converts drag coordinates. Pair updates are atomic, preserving min/max order.
+- Income strings already accepted by existing API; plain/lakh/lakhs values normalize for range display, changed endpoints sent as strings. Explicit client validation for new income bounds/order. Partner-height pending-backend save guard remains intact; no reviewed SQL/controller patch applied.
+- `npm test -- --runInBand tests/DualRangeField.test.jsx tests/editProfileForms.test.jsx`: PASS, 2 suites / 14 tests. Includes two-handle headings, independent accessibility updates, bounds/crossing, measured drag, overlapping thumbs, age/income payloads, height pending guard and prior edit controls.
+- Targeted source/test ESLint, Babel transforms and `git diff --check`: PASS. No database commands, API mutations or backend changes. Native build not repeated for JS-only update. Physical-device gesture/visual/font-scale smoke NOT RUN; partner-height persistence still awaits backend review/approval.
+
+### T3.2 edit profile dropdowns/ranges and sibling controls — 2026-10-27
+
+- Personal height now dropdown 4 ft 0 in–7 ft 0 in in one-inch steps; existing text/legacy stored values normalize for display, saves retain feet.inches string (including 5.10). Edit religion/partner religion: Hindu/Muslim/Sikh/Christian. Career employment matches registration; income 1 lakh–49 lakhs then More than 50 lakhs. No endpoint/field changes for these edits.
+- Sibling totals offer 0–5; zero resets matching married count to 0 and disables it. Married options limited to total; lowering totals clamps married count. Sends changed numeric counts through existing family API. Touched family/career/religion/partner memo dependencies stabilized, fixing pre-existing hook lint errors on these screens.
+- Partner Looking For now Never Married/Divorcee/Widowed/Separated; mother tongue Hindi/Himachali/Pahari/Punjabi. Added accessible drag/range controls for both age endpoints 18–70 and both height endpoints 48–84 total inches (4–7 ft). Changing one endpoint adjusts crossed counterpart. Existing legacy partner position codes interpreted consistently with backend HeightFormatter.
+- User explicitly chose inch precision and requested backend fix PREPARED FOR REVIEW. Existing DOUBLE partner-height columns and numeric ordering cannot preserve 5.10. Review-only schema SQL and controller diff in `docs/review/`, not applied. App PARTNER_HEIGHT_TEXT_SUPPORTED remains false; changed partner-height Save stops with explanatory message, preventing incompatible writes. Other preferences save through existing API when height unchanged. Review notes include approval/testing/enabling sequence and old-data ambiguity.
+- Targeted ESLint/Babel/scoped diff PASS. Mocked edit-form tests: 9 PASS; broader local regression command over 9 test suites: 66 tests PASS. Covers height serialization, religion/career payloads, income bounds, sibling zero/disabled/clamp, ordered ages, partner-height pending guard, accessibility range clamping and legacy conversions. Full `npm run lint` still FAILS on 4 existing WalletScreen duplicate keys, plus 2 navigation warnings; touched edit screens lint clean.
+- Prepared backend controller syntax (`php -l /tmp/him-reviewed-ProfileController.php`): PASS only; not applied/integration tested. No backend edits, database commands, migrations, data/schema writes or live API mutations. Device slider/dropdown smoke and native build NOT RUN for JS-only UI changes. Partner-height persistence acceptance remains pending reviewed backend/schema approval.
+
+### T3.1 / T4.1 full profile photo viewer — 2026-10-27
+
+- Added shared ProfilePhoto thumbnail/viewer to My Profile and Member Profile. Tapping an available photo opens its original URL in a full-screen, safe-area modal using contain sizing so the entire image is visible. Close button/Android Back dismiss; loading, image error/retry and photo-source-change dismissal supported. No viewer on missing-photo placeholders.
+- Decorative photo badges no longer intercept image taps; My Profile camera/edit control and Member Profile shortlist action remain separate sibling controls. Existing thumbnail error handling, screen data/actions and owner edits preserved. No dependencies, backend changes, image uploads or database writes.
+- `npm test -- --runInBand tests/MemberProfilePhoto.test.jsx tests/ProfilePhoto.test.jsx tests/MyProfileScreen.test.jsx __tests__/MemberProfileScreen.test.jsx`: PASS, 4 suites / 9 tests. Covers open/contain/close/Android Back, image retry, source-change dismissal, My Profile integration and Member Profile integration without interest/shortlist mutations, plus existing owner actions/refresh behavior.
+- Targeted source/test ESLint, Babel transforms and `git diff --check`: PASS. Native build not repeated for JS-only change. Device modal/rotation/font-scale/image visual smoke NOT RUN.
+
+### T1.1 / T3.1 My Profile aligned with Member Profile — 2026-10-27
+
+- Restyled My Profile with Member Profile's 325-point photo hero, over-photo Profile ID/camera control, overlapping rounded summary, height/education/profession tiles, icon-backed detail sections and fixed bottom actions. Owner actions are Edit My Profile and Manage Photos; own contact details are visible without member-contact unlock actions. Safe bottom area/font wrapping retained.
+- Preserved completion meter, focus/pull-to-refresh, cached-profile error/retry, section editing, empty/loading states and image fallback. Refresh now permits retrying a failed same-URL photo. Added own astro/contact sections and richer career/partner rows. Birth date/time derived from actual combined API field; numeric-looking stored height 5.10 displays as 5 ft 10 in. No invented engagement stats or verification labels.
+- `npm test -- --runInBand tests/MyProfileScreen.test.jsx tests/images.test.js`: PASS, 2 suites / 7 tests. Behavior checks cover own contact/height/time, edit/photo routes, cached profile after refresh failure/retry, photo failure/refresh recovery and empty-section edit access. Targeted source/test ESLint, Babel transform and `git diff --check`: PASS.
+- Connected OnePlus UI hierarchy confirms My Profile and both fixed bottom actions render. Screenshot capture is black, so full visual/photo/small-screen/font-scale acceptance is unverified. No database writes, API mutations or backend/native changes; Android build not repeated for this JS-only screen update.
+
+### T3.1 / T3.3 My Account uploaded photo server mismatch — 2026-10-27
+
+- AccountScreen resolves member.photo through shared getProfileImage. Found image base hardcoded to production himrishtey.com while API/uploads use production.ddev.site:8443. Laravel profile_photos disk and registration upload both use public photos/photo directory.
+- Shared image base now derives from API_CONFIG origin, preserving DDEV HTTPS port; My Account and other shared photo consumers request the same server as uploads. Absolute HTTPS image URLs and filename encoding/path protections preserved. No backend edits or database operations.
+- `npm test -- --runInBand tests/images.test.js`: PASS, 4 cases for DDEV port, trailing API slash, production URL, absolute URLs/encoding/invalid paths. Targeted source/test ESLint, Babel and `git diff --check`: PASS. Actual uploaded photo/device visual check NOT RUN; native rebuild not needed for JS config change.
+
+### T2.4 registration camera photo option — 2026-10-27
+
+- Choose photo/Change photo now offers Take photo, Choose from library, Cancel. Camera uses existing react-native-image-picker, front camera and `saveToPhotos:false` (temporary app photo, no gallery-save permission). Existing file type/size validation, preview/remove, optional skip, multipart upload and duplicate picker lock apply to both sources.
+- Handles camera unavailable, denied access, cancellation and general picker failures with retry/library recovery. Installed library README confirms Android camera intent needs no CAMERA permission unless separately declared; current Android manifest has none, so no Android permission/dependency/native change.
+- Added required iOS camera/photo-library usage descriptions; plist parsing PASS. iOS build/device behavior remains unverified.
+- Targeted ESLint, Babel transform and `git diff --check`: PASS. Registration/select/date/API tests: 4 suites / 45 tests PASS, including camera payload/options, cancellation, unavailable/permission recovery, existing library and skip paths. Camera/photo responses and API requests mocked only; no real photos captured/uploaded and no database changes.
+- Android native build not repeated for JS-only Android change. Physical camera launch/capture and iOS smoke NOT RUN.
+
+### T2.4 registration height storage and employment label — 2026-10-27
+
+- Renamed No employed to Not employed in registration dropdown and expected options.
+- Read Laravel registrationStep2: height is stored unchanged. Read HeightFormatter: numeric-looking strings are interpreted as feet/inches, including 5.10 as 5 ft 10 in. Registration now keeps readable dropdown labels while serializing selected height to a string such as `5.5`, `5.10`, `5.11`, `4.0` or `7.0` in API step 2. No decimal conversion; invalid/out-of-range labels rejected before transport.
+- `npm test -- --runInBand tests/registration.test.jsx tests/SelectField.test.jsx tests/registrationApi.test.js tests/DateTimeField.test.jsx`: PASS, 4 suites / 43 tests. Added explicit height format/boundary/trailing-zero checks and current-step payload assertion. Targeted ESLint, Babel transform and `git diff --check`: PASS.
+- No database commands, writes, schema changes, backend edits or live submissions. Existing saved records unchanged. Native/device checks not repeated for payload/label-only change.
+
+### T2.4 registration dropdowns and complete Back navigation — 2026-10-27
+
+- Added reusable modal dropdown with accessible current selection, scrollable options and Cancel/Android-back dismissal. Height has 37 one-inch options from 4 ft 0 in through 7 ft 0 in; income has 1 lakh through 49 lakhs then More than 50 lakhs.
+- Employed in: Private, Bussiness, Defence, Govt Job, No employed, Self employed. Marital status: Never Married, Divorced, Widowed, Awaiting Divorce. Mother tongue: Hindi, Himachali/pahari, Punjabi. Religion: Hindu, Muslim, Sikh, Chirstian. Manglik/horoscope needed: Yes/No. Labels/values follow requested lists; selected membership validated before submission. API field keys unchanged; no backend changes.
+- Back button now reaches every earlier registration screen, including the account-creation boundary. Android/header GO_BACK/POP moves within form before prompting to leave at first screen. Submitted initial account details are viewable/read-only (password hidden); Continue returns to profile completion without recreating account. Unsaved selections remain, and profile steps can be edited/resaved for the same member.
+- `npm test -- --runInBand tests/registration.test.jsx tests/SelectField.test.jsx tests/registrationApi.test.js tests/DateTimeField.test.jsx`: PASS, 4 suites / 37 tests. Added dropdown selection/cancellation, exact option ranges/lists, invalid options, post-creation all-screen Back/forward without duplicate creation and Android Back behavior. Existing payload/save/retry/photo/date/time checks pass with dropdown inputs.
+- Targeted source/test ESLint, Babel transforms and `git diff --check`: PASS. No API submissions/database commands/schema or data changes; tests mock requests. Native build not repeated for JS-only update. Device dropdown/font-scale/back smoke remains NOT RUN.
+
+### T2.4 registration profile-completion continuation — 2026-10-27
+
+- Read actual Laravel registrationStep2–5 validators again; kept first three requested signup screens. Account Submit now continues to birth/time/location (UI 4 → API 2), education/career (UI 5 → API 3), community (UI 6 → API 4), optional photo (UI 7 → API 5), then completion/login.
+- Exact required fields: birth_time (`hh:mm AM/PM` selector), height, country_living_in, state_living_in, city_living_in; education, employed_in, occupation, annual_income; marital_status, mother_tongue, religion, cast, manglik, horoscope_needed. Photo optional JPG/PNG/WebP ≤5 MB, supports preview/change/remove/skip. No invented backend fields or lookups.
+- Account ID retained in memory; password cleared after creation. Confirmed creation cannot be repeated via Back. Later steps validate/save individually and retry failures against the same member. Current fields/errors and prior profile details remain available across Back. Duplicate request/picker locks and unmount cancellation retained. Success shown after confirmed final response only.
+- `npm test -- --runInBand tests/registration.test.jsx tests/registrationApi.test.js tests/DateTimeField.test.jsx`: PASS, 3 suites / 32 tests. Added exact later-step payload/ID/order, required fields/time, network/server retry, Back preservation, duplicate save, image validation/upload and photo-skip coverage. Initial consent/creation and picker tests pass. Terms-link test now follows configured API origin.
+- Targeted source/test ESLint, Babel transforms and `git diff --check`: PASS. No database commands, live API submissions, backend edits or schema/data changes. Tests use mocked requests only. Device continuation/keyboard/font-scale smoke and staging mutation acceptance NOT RUN under user's no-DB-changes constraint; no native changes/build needed. Existing backend security and full-suite/lint blockers remain.
+
+### T0.2 / T2.4 Android DDEV HTTPS connectivity — 2026-10-27
+
+- Diagnosed interrupted connection on connected OnePlus: DDEV hostname resolves to 127.0.0.1 on phone; only Metro forwarded. Android refuses reverse port 443. Added USB reverse 8443→host443 and changed development baseURL to `https://production.ddev.site:8443/api/v1`.
+- Phone TLS test then exposed missing local CA trust. Added debug-source-set-only manifest/config and public mkcert CA (no private key), scoped exclusively to production.ddev.site. API domain requires HTTPS; existing debug Metro cleartext behavior preserved. Main/release config unchanged; no trust-all or hostname bypass.
+- Android debug build PASS (231 tasks, 32 executed/199 up-to-date); install -r PASS, app launched. Phone verified-CA GET and real in-app JS-runtime GET both return HTTP 405 for registration route, proving TLS/transport without submitting data. Targeted config ESLint/scoped diff check PASS.
+- No database commands, submissions or database writes in this turn. Full registration intentionally not retried under user's no-DB-changes constraint. Setup/reconnect instructions in `docs/ddev-android-https.md`; native resources require rebuilt debug app, which is installed on connected phone.
+
+### T0.3 / T2.4 real-schema registration failure fixed on DDEV — 2026-10-27
+
+- User supplied `https://production.ddev.site` for staging diagnosis. Reproduced valid registration HTTP 500: `plan_activation_date` cannot be null. Read-only schema confirmed DATE NOT NULL/no default, unlike original synthetic fixture. Production empty-request validation returns 422; no production account attempts.
+- After approved out-of-workspace edit, local Laravel AuthController initial registration sets required date to creation date, matching existing admin convention. Plan remains 0 and active No; no schema/permission/signing/activation changes. Existing backend user edits preserved. Exact synthetic DDEV retry returns HTTP 201, generated Profile ID, step 1/next 2. Synthetic account login/profile/visibility each HTTP 200; inactive status retained. One staging test member (28848) retained.
+- Corrected smoke fixture to require date and added no-plan/inactive assertions. Before fix reproduces creation failure; after fix 45 checks: 43 passes, 2 existing security failures. PHP syntax and backend scoped diff check PASS. No production deployment; app API config untouched.
+- App now explains uncertain registration failures by cause (HTTP server status, timeout, network interruption, unexpected confirmation) rather than masking them with one message. Payloads/secrets/SQL not logged or shown; duplicate-creation protection preserved.
+- Targeted app/test ESLint, Babel and `git diff --check`: PASS. Registration/picker suites: 3 suites / 26 tests PASS. Native/device UI checks not repeated for this change; full-suite unrelated blockers and backend security gaps remain. See `docs/registration-diagnosis.md`. Live deployment/phone acceptance still pending.
+
+### T2.4 three-screen initial signup — 2026-10-27
+
+- Changed flow at user request: (1) profile created for, (2) gender, (3) full name/email/phone/date picker/password, required Terms and Conditions agreement, Submit. Removed password confirmation and profile-completion questions from initial signup. Back preserves all selections/details/agreement.
+- Three UI steps submit only the confirmed initial POST `/auth/register`; later profile completion happens after login. Success copy states account created, displays Profile ID and directs to login. Existing backend step adapter/contracts retained; no fake values sent to later registration steps.
+- Added accessible checkbox and verified website terms link (`/terms-and-conditions` on configured API origin), with visible link-open failure. Agreement is client-required; current backend does not record consent. Duplicate lock, initial-response uncertainty protection, request cancellation and server-field correction preserved.
+- Targeted source/test ESLint, Babel transforms and `git diff --check`: PASS. `npm test -- --runInBand tests/registration.test.jsx tests/registrationApi.test.js tests/DateTimeField.test.jsx`: PASS, 3 suites / 21 tests. Screen regressions updated for step visibility/order, one API call, required/revocable consent, terms link, Back preservation, duplicate taps, server errors and cancellation.
+- No backend edits/live accounts. Native build, device keyboard/back/terms-link smoke and staging completion NOT RUN for this JS-only revision. Existing backend security and full-suite/lint blockers remain; T2.4 acceptance stays open.
+
+### T0.3 / T2.4 real Laravel registration execution — 2026-10-27
+
+- Added `tests/laravel/registration-smoke.php`: isolated Laravel HTTP-kernel tests exercising actual API routes, application middleware/database resolver, controller, Member and photo upload code. All DB connections override to SQLite; synthetic schema and temporary public/storage paths, no backend .env/providers or live database loaded. No production accounts/photos, backend edits or outbound API requests.
+- `php -l tests/laravel/registration-smoke.php`: PASS. `php tests/laravel/registration-smoke.php`: exit 1; 43 checks, 41 functional passes and 2 security failures. Five steps return expected success/status/order and persist expected fields; validation, duplicate email/mobile, missing member, image/size rejection, photo skip/upload and AM/PM/midnight/noon readback pass.
+- Security failures confirm unauthenticated step-3 updates return 200 by member ID, and password persistence is plaintext. No backend fixes made. Full evidence/limits in `docs/registration-api-test-results.md`.
+- `git diff --check`: PASS. Deployed/staging HTTP, actual MySQL schema compatibility and server filesystem permissions NOT VERIFIED. Existing JS checks/build not repeated for PHP test/report-only work. T2.4 remains open pending backend remediation and staging/device acceptance.
+
+### T2.4 registration date/time selectors — 2026-10-27
+
+- Replaced date-of-birth and birth-time text entry with shared accessible picker dialogs: day/month/year and hour/minute/AM-PM lists, Done/Cancel, backdrop/Android-back dismissal, current selection, and disabled-state/error styling. Date picker clamps day when changing month/year and prevents future birth dates. No dependency/native configuration changes.
+- Displays readable date labels while preserving API `YYYY-MM-DD` and `hh:mm AM/PM` values, with local date components to avoid timezone shifts. Form validation/submission remains unchanged.
+- `npm test -- --runInBand tests/DateTimeField.test.jsx tests/registration.test.jsx tests/registrationApi.test.js`: PASS, 3 suites / 21 tests. Six picker cases cover calendar selection, leap-day clamping, cancellation/reopen, future-date rejection/Android back and midnight/noon/PM formatting; registration regressions pass using selector values.
+- Targeted ESLint of picker/form/config/tests, Babel transforms and `git diff --check`: PASS. Device visual/keyboard/font-scale smoke NOT RUN; native build not repeated for this JS-only change. Existing full-suite/lint blockers from T2.4 remain unresolved.
+
+### T0.3 / T2.4 registration flow — 2026-10-27
+
+- Replaced RegisterScreen placeholder with five-step account/personal/education/community/photo form connected to the confirmed Laravel registration endpoints. Existing Register Free navigation retained. Field/date/password validation, profile/gender choices from website, password visibility, optional image-library photo (JPG/PNG/WebP ≤5 MB), keyboard/safe-area handling, back/draft confirmation, loading, inline errors, retries and success/Profile ID/login flow implemented.
+- Collects all details before sequential submission. In-memory draft only; no password/draft persistence or logs. Synchronous duplicate lock, abort on unmount, matching step/member response checks, retry from failed step, and prevention of repeat creation after an uncertain initial response. No automatic sign-in because registration returns no token. Native-stack `usePreventRemove` handles interruption. Existing user API config/photo changes preserved.
+- Contract/source evidence, request/response examples and backend gaps recorded in `docs/registration-contract.md`. Inspected local Laravel source read-only; no backend edits, live accounts, uploads or SMS. Backend currently stores plaintext passwords and accepts later steps by member ID without ownership authentication. Production acceptance requires backend remediation. Age/consent/registration verification and deployed parity remain unconfirmed.
+- `npx eslint src/screens/auth/RegisterScreen.jsx src/api/registrationApi.js src/features/registration/registrationForm.js tests/registration.test.jsx tests/registrationApi.test.js`: PASS. New tests live in `tests/` because existing `__tests__/` is Git-ignored; ignore configuration preserved.
+- Final `npm test -- --runInBand`: 5 suites / 32 tests PASS, including 15 new registration tests. 3 existing suites fail to parse React Navigation ESM (App, InterestsScreen, interestFlow). Tests cover required fields, invalid date/time/password, delayed creation, all five payloads/routes, same-tick duplicate taps, retry ordering, server field errors, uncertain initial creation, cancellation, photo validation/multipart and draft interruption.
+- Final `npm run lint`: FAIL only on 8 existing WalletScreen/account-edit errors, 2 navigation warnings. Registration files lint clean. Babel transforms and `git diff --check`: PASS.
+- `cd android && ./gradlew assembleDebug`: PASS after approved Gradle cache access, BUILD SUCCESSFUL, 231 tasks (16 executed/215 up-to-date), existing deprecation warnings. Debug build does not establish staging/API behavior.
+- Android form/keyboard/back/font-scale smoke and authorized staging completion/recovery NOT RUN. T2.4 remains open pending these checks and product/backend gaps; no live production mutations performed.
+
+### T4.1 category scroll behavior reverted — 2026-10-27
+
+- Reverted the direction-sensitive category animation at user request; categories remain visible. Photo top-cropping fix preserved. Targeted HomeScreen ESLint and `git diff --check`: PASS.
+
+### T4.1 profile photo top cropping — 2026-10-27
+
+- Acceptance: shared Discover/Search member cards preserve the original photo's top edge, fill the card without stretching, and retain existing overlays/actions. Use measured card width and loaded image dimensions to scale proportionally, center horizontally and anchor at top instead of vertically centered cover cropping. URI-scoped dimensions prevent reusing another member's photo ratio.
+- `npx eslint src/components/home/HomeMemberCard.jsx` and `git diff --check`: PASS. `cd android && ./gradlew assembleDebug`: PASS (231 tasks; existing deprecation warnings).
+- `npm run lint`: FAIL on 8 existing errors in WalletScreen and account-edit hook dependencies, plus 2 navigation warnings. Final `npm test -- --runInBand`: 3 suites passed / 17 tests passed; 3 suites blocked by React Navigation ESM parsing. Initial run also had a failing test; rerun passed all executable tests. No test/config changes.
+- ADB sees connected OnePlus and brought app forward, but captured screen is black; photo framing smoke remains unverified. No API mutations. Existing src/config/api.js user edit preserved. Visual acceptance remains open.
+
 ### T1.1 bottom navigation transparency — 2026-10-24
 
 - Undid the white-outline change per request, restoring purple-filled active footer icons and removing outlineColor. Targeted AppIcon/MainTabs ESLint and scoped whitespace check PASS.

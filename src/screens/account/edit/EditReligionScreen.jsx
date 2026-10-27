@@ -1,3 +1,5 @@
+import { RELIGION_OPTIONS } from '../../../constants/profileOptions';
+import SelectField from '../../../components/SelectField';
 
 import React, { useEffect, useMemo, useState } from 'react';
 
@@ -53,9 +55,7 @@ const FIELDS = [
 ];
 
 function textValue(value) {
-    return value === null || value === undefined
-        ? ''
-        : String(value);
+    return value === null || value === undefined ? '' : String(value);
 }
 
 function getErrorMessage(error) {
@@ -76,13 +76,19 @@ function getErrorMessage(error) {
     );
 }
 
-function FormField({
-    label,
-    placeholder,
-    value,
-    onChangeText,
-    maxLength,
-}) {
+function FormField({ label, placeholder, value, onChangeText, maxLength }) {
+    if (label === 'Religion')
+        return (
+            <View style={styles.field}>
+                <Text style={styles.label}>{label}</Text>
+                <SelectField
+                    label={label}
+                    value={value}
+                    options={RELIGION_OPTIONS}
+                    onChange={onChangeText}
+                />
+            </View>
+        );
     return (
         <View style={styles.field}>
             <Text style={styles.label}>{label}</Text>
@@ -107,31 +113,21 @@ export default function EditReligionScreen() {
 
     const { user, refreshUser } = useAuth();
 
-    const member =
-        user?.data?.member ||
-        user?.member ||
-        user ||
-        {};
+    const member = useMemo(
+        () => user?.data?.member || user?.member || user || {},
+        [user],
+    );
 
     const initial = useMemo(() => {
         const values = {};
 
         FIELDS.forEach(field => {
-            values[field.key] = textValue(
-                member?.[field.key],
-            );
+            values[field.key] = textValue(member?.[field.key]);
         });
 
         values.manglik = textValue(member?.manglik);
         return values;
-    }, [
-        member?.religion,
-        member?.mother_tongue,
-        member?.cast,
-        member?.sub_cast,
-        member?.gotra,
-        member?.manglik,
-    ]);
+    }, [member]);
 
     const [form, setForm] = useState(initial);
     const [saving, setSaving] = useState(false);
@@ -157,13 +153,9 @@ export default function EditReligionScreen() {
         const changed = {};
 
         FIELDS.forEach(field => {
-            const before = textValue(
-                initial[field.key],
-            ).trim();
+            const before = textValue(initial[field.key]).trim();
 
-            const after = textValue(
-                form[field.key],
-            ).trim();
+            const after = textValue(form[field.key]).trim();
 
             if (before !== after) {
                 changed[field.key] = after || null;
@@ -178,10 +170,7 @@ export default function EditReligionScreen() {
         }
 
         if (Object.keys(changed).length === 0) {
-            Alert.alert(
-                'No Changes',
-                'You have not changed any details.',
-            );
+            Alert.alert('No Changes', 'You have not changed any details.');
             return;
         }
 
@@ -219,10 +208,7 @@ export default function EditReligionScreen() {
                     ],
                 );
             } else {
-                Alert.alert(
-                    'Unable to Save',
-                    getErrorMessage(error),
-                );
+                Alert.alert('Unable to Save', getErrorMessage(error));
             }
         } finally {
             setSaving(false);
@@ -234,12 +220,10 @@ export default function EditReligionScreen() {
             style={styles.container}
             contentContainerStyle={styles.content}
             keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={false}>
-
+            showsVerticalScrollIndicator={false}
+        >
             <View style={styles.heading}>
-                <Text style={styles.title}>
-                    Religion & Community
-                </Text>
+                <Text style={styles.title}>Religion & Community</Text>
 
                 <Text style={styles.subtitle}>
                     Update your religious and community information.
@@ -254,9 +238,7 @@ export default function EditReligionScreen() {
                         placeholder={field.placeholder}
                         maxLength={field.maxLength}
                         value={form[field.key] || ''}
-                        onChangeText={value =>
-                            updateField(field.key, value)
-                        }
+                        onChangeText={value => updateField(field.key, value)}
                     />
                 ))}
             </View>
@@ -276,13 +258,18 @@ export default function EditReligionScreen() {
                                     selected && styles.selectedOption,
                                 ]}
                                 onPress={() =>
-                                    updateField('manglik', selected ? '' : option)
-                                }>
+                                    updateField(
+                                        'manglik',
+                                        selected ? '' : option,
+                                    )
+                                }
+                            >
                                 <Text
                                     style={[
                                         styles.optionText,
                                         selected && styles.selectedOptionText,
-                                    ]}>
+                                    ]}
+                                >
                                     {option}
                                 </Text>
                             </TouchableOpacity>
@@ -296,20 +283,15 @@ export default function EditReligionScreen() {
             </View>
 
             <TouchableOpacity
-                style={[
-                    styles.saveButton,
-                    saving && styles.disabledButton,
-                ]}
+                style={[styles.saveButton, saving && styles.disabledButton]}
                 onPress={handleSave}
                 disabled={saving}
-                activeOpacity={0.8}>
-
+                activeOpacity={0.8}
+            >
                 {saving ? (
                     <ActivityIndicator color="#FFFFFF" />
                 ) : (
-                    <Text style={styles.saveText}>
-                        Save Changes
-                    </Text>
+                    <Text style={styles.saveText}>Save Changes</Text>
                 )}
             </TouchableOpacity>
         </ScrollView>

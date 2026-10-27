@@ -1,3 +1,8 @@
+import {
+    EMPLOYMENT_OPTIONS,
+    INCOME_OPTIONS,
+} from '../../../constants/profileOptions';
+import SelectField from '../../../components/SelectField';
 
 import React, { useEffect, useMemo, useState } from 'react';
 
@@ -97,9 +102,7 @@ const FIELD_GROUPS = [
 const ALL_FIELDS = FIELD_GROUPS.flatMap(group => group.fields);
 
 function asText(value) {
-    return value === null || value === undefined
-        ? ''
-        : String(value);
+    return value === null || value === undefined ? '' : String(value);
 }
 
 function getErrorMessage(error) {
@@ -120,11 +123,25 @@ function getErrorMessage(error) {
     );
 }
 
-function FormField({
-    field,
-    value,
-    onChangeText,
-}) {
+function FormField({ field, value, onChangeText }) {
+    const options =
+        field.key === 'employed_in'
+            ? EMPLOYMENT_OPTIONS
+            : field.key === 'annual_income'
+            ? INCOME_OPTIONS
+            : null;
+    if (options)
+        return (
+            <View style={styles.field}>
+                <Text style={styles.label}>{field.label}</Text>
+                <SelectField
+                    label={field.label}
+                    value={value}
+                    options={options}
+                    onChange={onChangeText}
+                />
+            </View>
+        );
     return (
         <View style={styles.field}>
             <Text style={styles.label}>{field.label}</Text>
@@ -132,17 +149,12 @@ function FormField({
             <TextInput
                 value={value}
                 onChangeText={onChangeText}
-                style={[
-                    styles.input,
-                    field.multiline && styles.multiline,
-                ]}
+                style={[styles.input, field.multiline && styles.multiline]}
                 placeholder={field.placeholder}
                 placeholderTextColor="#9992A5"
                 maxLength={field.maxLength}
                 multiline={Boolean(field.multiline)}
-                textAlignVertical={
-                    field.multiline ? 'top' : 'center'
-                }
+                textAlignVertical={field.multiline ? 'top' : 'center'}
                 autoCapitalize="sentences"
                 autoCorrect={false}
             />
@@ -160,11 +172,10 @@ export default function EditEducationCareerScreen() {
     const navigation = useNavigation();
     const { user, refreshUser } = useAuth();
 
-    const member =
-        user?.data?.member ||
-        user?.member ||
-        user ||
-        {};
+    const member = useMemo(
+        () => user?.data?.member || user?.member || user || {},
+        [user],
+    );
 
     const initial = useMemo(() => {
         const values = {};
@@ -174,18 +185,7 @@ export default function EditEducationCareerScreen() {
         });
 
         return values;
-    }, [
-        member?.education,
-        member?.any_other_qualifications,
-        member?.about_my_education,
-        member?.employed_in,
-        member?.occupation,
-        member?.designation,
-        member?.organization_name,
-        member?.job_location,
-        member?.annual_income,
-        member?.about_my_career,
-    ]);
+    }, [member]);
 
     const [form, setForm] = useState(initial);
     const [saving, setSaving] = useState(false);
@@ -220,10 +220,7 @@ export default function EditEducationCareerScreen() {
         });
 
         if (Object.keys(changed).length === 0) {
-            Alert.alert(
-                'No Changes',
-                'You have not changed any details.',
-            );
+            Alert.alert('No Changes', 'You have not changed any details.');
             return;
         }
 
@@ -260,10 +257,7 @@ export default function EditEducationCareerScreen() {
                     ],
                 );
             } else {
-                Alert.alert(
-                    'Unable to Save',
-                    getErrorMessage(error),
-                );
+                Alert.alert('Unable to Save', getErrorMessage(error));
             }
         } finally {
             setSaving(false);
@@ -275,12 +269,10 @@ export default function EditEducationCareerScreen() {
             style={styles.container}
             contentContainerStyle={styles.content}
             showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled">
-
+            keyboardShouldPersistTaps="handled"
+        >
             <View style={styles.heading}>
-                <Text style={styles.title}>
-                    Education & Career
-                </Text>
+                <Text style={styles.title}>Education & Career</Text>
 
                 <Text style={styles.subtitle}>
                     Share your qualifications, employment and career details.
@@ -289,9 +281,7 @@ export default function EditEducationCareerScreen() {
 
             {FIELD_GROUPS.map(group => (
                 <View key={group.title} style={styles.card}>
-                    <Text style={styles.sectionTitle}>
-                        {group.title}
-                    </Text>
+                    <Text style={styles.sectionTitle}>{group.title}</Text>
 
                     {group.fields.map(field => (
                         <FormField
@@ -307,20 +297,15 @@ export default function EditEducationCareerScreen() {
             ))}
 
             <TouchableOpacity
-                style={[
-                    styles.saveButton,
-                    saving && styles.disabledButton,
-                ]}
+                style={[styles.saveButton, saving && styles.disabledButton]}
                 disabled={saving}
                 onPress={handleSave}
-                activeOpacity={0.8}>
-
+                activeOpacity={0.8}
+            >
                 {saving ? (
                     <ActivityIndicator color="#FFFFFF" />
                 ) : (
-                    <Text style={styles.saveText}>
-                        Save Education & Career
-                    </Text>
+                    <Text style={styles.saveText}>Save Education & Career</Text>
                 )}
             </TouchableOpacity>
         </ScrollView>

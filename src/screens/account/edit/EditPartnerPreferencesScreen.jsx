@@ -1,3 +1,11 @@
+import DualRangeField from '../../../components/DualRangeField';
+import {
+    LOOKING_FOR_OPTIONS,
+    RELIGION_OPTIONS,
+    MOTHER_TONGUE_OPTIONS,
+    partnerHeightInches,
+} from '../../../constants/profileOptions';
+import SelectField from '../../../components/SelectField';
 
 import React, { useEffect, useMemo, useState } from 'react';
 
@@ -15,9 +23,7 @@ import {
 
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../../../context/AuthContext';
-import {
-    updatePartnerPreferencesProfile,
-} from '../../../api/editProfileApi';
+import { updatePartnerPreferencesProfile } from '../../../api/editProfileApi';
 import colors from '../../../theme/colors';
 
 const GROUPS = [
@@ -157,8 +163,7 @@ const GROUPS = [
             {
                 key: 'about_my_partner',
                 label: 'Describe Your Ideal Partner',
-                placeholder:
-                    'Write about the qualities you are looking for...',
+                placeholder: 'Write about the qualities you are looking for...',
                 multiline: true,
             },
         ],
@@ -167,17 +172,31 @@ const GROUPS = [
 
 const FIELDS = GROUPS.flatMap(group => group.fields);
 
-const NUMBER_FIELDS = new Set([
-    'partner_age_from',
-    'partner_age_to',
-    'partner_height_from',
-    'partner_height_to',
-]);
+const NUMBER_FIELDS = new Set(['partner_age_from', 'partner_age_to']);
+
+// Selector positions use ten displayed inch choices per foot: .0 through .9.
+function heightPosition(inches) {
+    if (inches === '') return '';
+    const feet = Math.floor(Number(inches) / 12),
+        inch = Number(inches) % 12;
+    return String(
+        Math.max(0, Math.min(30, (feet - 4) * 10 + Math.min(inch, 10))),
+    );
+}
+function positionHeight(position) {
+    const value = Number(position);
+    return String((4 + Math.floor(value / 10)) * 12 + (value % 10));
+}
+
+function incomeRangeValue(value) {
+    const text = asText(value).trim();
+    if (!text) return '';
+    const match = /^(\d+)(?:\s+lakhs?)?$/i.exec(text);
+    return match && Number(match[1]) <= 50 ? String(Number(match[1])) : '';
+}
 
 function asText(value) {
-    return value === null || value === undefined
-        ? ''
-        : String(value);
+    return value === null || value === undefined ? '' : String(value);
 }
 
 function getErrorMessage(error) {
@@ -203,19 +222,14 @@ function validateNumber(value, min, max, integer) {
         return true;
     }
 
-    if (
-        !/^\d+(\.\d+)?$/.test(value) ||
-        !Number.isFinite(Number(value))
-    ) {
+    if (!/^\d+(\.\d+)?$/.test(value) || !Number.isFinite(Number(value))) {
         return false;
     }
 
     const number = Number(value);
 
     return (
-        number >= min &&
-        number <= max &&
-        (!integer || Number.isInteger(number))
+        number >= min && number <= max && (!integer || Number.isInteger(number))
     );
 }
 
@@ -237,7 +251,85 @@ function validateRange(form, fromKey, toKey, min, max, integer) {
     return true;
 }
 
-function FormField({ field, value, onChangeText }) {
+function FormField({
+    field,
+    value,
+    onChangeText,
+    form,
+    onRangeChange,
+    disabled,
+}) {
+    const dropdowns = {
+        looking_for: LOOKING_FOR_OPTIONS,
+        partner_religion: RELIGION_OPTIONS,
+        partner_mothertongue: MOTHER_TONGUE_OPTIONS,
+    };
+    if (dropdowns[field.key])
+        return (
+            <View style={styles.field}>
+                <Text style={styles.label}>{field.label}</Text>
+                <SelectField
+                    label={field.label}
+                    value={value}
+                    options={dropdowns[field.key]}
+                    onChange={onChangeText}
+                />
+            </View>
+        );
+    const rangePrefix = field.key.startsWith('partner_age')
+        ? 'partner_age'
+        : field.key.startsWith('partner_height')
+        ? 'partner_height'
+        : field.key.startsWith('partner_annual_income')
+        ? 'partner_annual_income'
+        : null;
+    if (rangePrefix) {
+        if (field.key.endsWith('_to')) return null;
+        const isHeight = rangePrefix === 'partner_height',
+            isAge = rangePrefix === 'partner_age';
+        return (
+            <View>
+                <DualRangeField
+                    label={
+                        isAge
+                            ? 'Age'
+                            : isHeight
+                            ? 'Height (ft)'
+                            : 'Annual Income (lpa)'
+                    }
+                    lower={
+                        isHeight
+                            ? heightPosition(form[rangePrefix + '_from'])
+                            : form[rangePrefix + '_from']
+                    }
+                    upper={
+                        isHeight
+                            ? heightPosition(form[rangePrefix + '_to'])
+                            : form[rangePrefix + '_to']
+                    }
+                    min={isAge ? 18 : 0}
+                    max={isAge ? 70 : isHeight ? 30 : 50}
+                    tickStep={5}
+                    format={
+                        isHeight
+                            ? inches =>
+                                  `${4 + Math.floor(inches / 10)}.${
+                                      inches % 10
+                                  }`
+                            : String
+                    }
+                    disabled={disabled}
+                    onChange={({ lower, upper }) =>
+                        onRangeChange(
+                            rangePrefix,
+                            isHeight ? positionHeight(lower) : lower,
+                            isHeight ? positionHeight(upper) : upper,
+                        )
+                    }
+                />
+            </View>
+        );
+    }
     const isNumeric = Boolean(field.numeric);
 
     if (field.options) {
@@ -259,12 +351,14 @@ function FormField({ field, value, onChangeText }) {
                                 activeOpacity={0.8}
                                 onPress={() =>
                                     onChangeText(selected ? '' : option)
-                                }>
+                                }
+                            >
                                 <Text
                                     style={[
                                         styles.optionText,
                                         selected && styles.selectedOptionText,
-                                    ]}>
+                                    ]}
+                                >
                                     {option}
                                 </Text>
                             </TouchableOpacity>
@@ -273,9 +367,7 @@ function FormField({ field, value, onChangeText }) {
                 </View>
 
                 {value && !field.options.includes(value) ? (
-                    <Text style={styles.hint}>
-                        Current value: {value}
-                    </Text>
+                    <Text style={styles.hint}>Current value: {value}</Text>
                 ) : null}
 
                 <Text style={styles.hint}>
@@ -299,24 +391,19 @@ function FormField({ field, value, onChangeText }) {
                     field.numeric === 'decimal'
                         ? 'decimal-pad'
                         : field.numeric === 'integer'
-                            ? 'number-pad'
-                            : 'default'
+                        ? 'number-pad'
+                        : 'default'
                 }
                 multiline={Boolean(field.multiline)}
-                textAlignVertical={
-                    field.multiline ? 'top' : 'center'
-                }
+                textAlignVertical={field.multiline ? 'top' : 'center'}
                 autoCorrect={false}
-                style={[
-                    styles.input,
-                    field.multiline && styles.multiline,
-                ]}
+                style={[styles.input, field.multiline && styles.multiline]}
             />
 
             {isNumeric ? (
                 <Text style={styles.hint}>
                     {field.numeric === 'integer'
-                        ? 'Enter an age between 18 and 100.'
+                        ? 'Enter an age between 18 and 70.'
                         : 'Enter a numeric height from 3 to 8.'}
                 </Text>
             ) : null}
@@ -334,43 +421,24 @@ export default function EditPartnerPreferencesScreen() {
     const navigation = useNavigation();
     const { user, refreshUser } = useAuth();
 
-    const member =
-        user?.data?.member ||
-        user?.member ||
-        user ||
-        {};
+    const member = useMemo(
+        () => user?.data?.member || user?.member || user || {},
+        [user],
+    );
 
     const initial = useMemo(() => {
         const values = {};
 
         FIELDS.forEach(field => {
-            values[field.key] = asText(member[field.key]);
+            values[field.key] = field.key.startsWith('partner_height')
+                ? partnerHeightInches(member[field.key])
+                : field.key.startsWith('partner_annual_income')
+                ? incomeRangeValue(member[field.key])
+                : asText(member[field.key]);
         });
 
         return values;
-    }, [
-        member.looking_for,
-        member.partner_age_from,
-        member.partner_age_to,
-        member.partner_country,
-        member.partner_religion,
-        member.partner_cast,
-        member.partner_height_from,
-        member.partner_height_to,
-        member.partner_education,
-        member.partner_mothertongue,
-        member.partner_annual_income_from,
-        member.partner_annual_income_to,
-        member.is_partner_manglik,
-        member.partner_occupation,
-        member.partner_state,
-        member.partner_city,
-        member.partner_diet,
-        member.is_partner_smoking,
-        member.is_partner_drinking,
-        member.horoscope_needed,
-        member.about_my_partner,
-    ]);
+    }, [member]);
 
     const [form, setForm] = useState(initial);
     const [saving, setSaving] = useState(false);
@@ -380,10 +448,26 @@ export default function EditPartnerPreferencesScreen() {
     }, [initial]);
 
     const updateField = (key, value) => {
-        setForm(previous => ({
-            ...previous,
-            [key]: value,
-        }));
+        setForm(previous => {
+            const next = { ...previous, [key]: value };
+            for (const prefix of ['partner_age', 'partner_height']) {
+                const from = prefix + '_from',
+                    to = prefix + '_to';
+                if (
+                    key === from &&
+                    next[to] !== '' &&
+                    Number(value) > Number(next[to])
+                )
+                    next[to] = value;
+                if (
+                    key === to &&
+                    next[from] !== '' &&
+                    Number(value) < Number(next[from])
+                )
+                    next[from] = value;
+            }
+            return next;
+        });
     };
 
     const handleSave = async () => {
@@ -405,16 +489,12 @@ export default function EditPartnerPreferencesScreen() {
         });
 
         if (!Object.keys(changed).length) {
-            Alert.alert(
-                'No Changes',
-                'You have not changed any preferences.',
-            );
+            Alert.alert('No Changes', 'You have not changed any preferences.');
             return;
         }
 
         const ageChanged =
-            'partner_age_from' in changed ||
-            'partner_age_to' in changed;
+            'partner_age_from' in changed || 'partner_age_to' in changed;
 
         if (
             ageChanged &&
@@ -423,20 +503,37 @@ export default function EditPartnerPreferencesScreen() {
                 'partner_age_from',
                 'partner_age_to',
                 18,
-                100,
+                70,
                 true,
             )
         ) {
             Alert.alert(
                 'Invalid Age Range',
-                'Age must be between 18 and 100. Minimum age cannot exceed maximum age.',
+                'Age must be between 18 and 70. Minimum age cannot exceed maximum age.',
             );
             return;
         }
 
+        if (
+            ('partner_annual_income_from' in changed ||
+                'partner_annual_income_to' in changed) &&
+            !validateRange(
+                form,
+                'partner_annual_income_from',
+                'partner_annual_income_to',
+                0,
+                50,
+                true,
+            )
+        ) {
+            Alert.alert(
+                'Invalid Income Range',
+                'Income must be between 0 and 50 lakhs. Minimum cannot exceed maximum.',
+            );
+            return;
+        }
         const heightChanged =
-            'partner_height_from' in changed ||
-            'partner_height_to' in changed;
+            'partner_height_from' in changed || 'partner_height_to' in changed;
 
         if (
             heightChanged &&
@@ -444,19 +541,34 @@ export default function EditPartnerPreferencesScreen() {
                 form,
                 'partner_height_from',
                 'partner_height_to',
-                3,
-                8,
-                false,
+                48,
+                84,
+                true,
             )
         ) {
             Alert.alert(
                 'Invalid Height Range',
-                'Height must be between 3 and 8. Minimum height cannot exceed maximum height.',
+                'Height must be between 4 ft and 7 ft. Minimum height cannot exceed maximum height.',
             );
             return;
         }
 
-        // Send actual JSON numbers for age and height.
+        for (const key of ['partner_height_from', 'partner_height_to']) {
+            if (key in changed && changed[key] !== null) {
+                const inches = Number(changed[key]);
+                if (inches % 12 > 9) {
+                    Alert.alert(
+                        'Invalid Height',
+                        'Select a height from the updated range.',
+                    );
+                    return;
+                }
+                changed[key] = Number(
+                    `${Math.floor(inches / 12)}.${inches % 12}`,
+                );
+            }
+        }
+        // Age and restricted .0–.9 height values match the existing numeric API.
         for (const key of NUMBER_FIELDS) {
             if (
                 Object.prototype.hasOwnProperty.call(changed, key) &&
@@ -498,10 +610,7 @@ export default function EditPartnerPreferencesScreen() {
                     ],
                 );
             } else {
-                Alert.alert(
-                    'Unable to Save',
-                    getErrorMessage(error),
-                );
+                Alert.alert('Unable to Save', getErrorMessage(error));
             }
         } finally {
             setSaving(false);
@@ -513,12 +622,10 @@ export default function EditPartnerPreferencesScreen() {
             style={styles.container}
             contentContainerStyle={styles.content}
             keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={false}>
-
+            showsVerticalScrollIndicator={false}
+        >
             <View style={styles.heading}>
-                <Text style={styles.title}>
-                    Partner Preferences
-                </Text>
+                <Text style={styles.title}>Partner Preferences</Text>
 
                 <Text style={styles.subtitle}>
                     Set your preferences for a compatible life partner.
@@ -527,14 +634,21 @@ export default function EditPartnerPreferencesScreen() {
 
             {GROUPS.map(group => (
                 <View key={group.title} style={styles.card}>
-                    <Text style={styles.sectionTitle}>
-                        {group.title}
-                    </Text>
+                    <Text style={styles.sectionTitle}>{group.title}</Text>
 
                     {group.fields.map(field => (
                         <FormField
                             key={field.key}
                             field={field}
+                            form={form}
+                            disabled={saving}
+                            onRangeChange={(prefix, lower, upper) =>
+                                setForm(previous => ({
+                                    ...previous,
+                                    [prefix + '_from']: lower,
+                                    [prefix + '_to']: upper,
+                                }))
+                            }
                             value={form[field.key] || ''}
                             onChangeText={value =>
                                 updateField(field.key, value)
@@ -545,14 +659,11 @@ export default function EditPartnerPreferencesScreen() {
             ))}
 
             <TouchableOpacity
-                style={[
-                    styles.saveButton,
-                    saving && styles.disabledButton,
-                ]}
+                style={[styles.saveButton, saving && styles.disabledButton]}
                 disabled={saving}
                 onPress={handleSave}
-                activeOpacity={0.8}>
-
+                activeOpacity={0.8}
+            >
                 {saving ? (
                     <ActivityIndicator color="#FFFFFF" />
                 ) : (

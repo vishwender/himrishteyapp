@@ -1,3 +1,9 @@
+import {
+    HEIGHT_OPTIONS,
+    heightLabel,
+    heightValue,
+} from '../../../constants/profileOptions';
+import SelectField from '../../../components/SelectField';
 
 import React, { useEffect, useMemo, useState } from 'react';
 
@@ -19,22 +25,12 @@ import { useAuth } from '../../../context/AuthContext';
 import { updatePersonalProfile } from '../../../api/editProfileApi';
 import colors from '../../../theme/colors';
 
-const BLOOD_GROUPS = [
-    'A+', 'A-', 'B+', 'B-',
-    'AB+', 'AB-', 'O+', 'O-',
-];
+const BLOOD_GROUPS = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 
-const MARITAL_STATUSES = [
-    'Never Married',
-    'Divorced',
-    'Widowed',
-    'Separated',
-];
+const MARITAL_STATUSES = ['Never Married', 'Divorced', 'Widowed', 'Separated'];
 
 function asText(value) {
-    return value === null || value === undefined
-        ? ''
-        : String(value);
+    return value === null || value === undefined ? '' : String(value);
 }
 
 // Laravel accepts YYYY-MM-DD hh:mm AM/PM.
@@ -46,9 +42,7 @@ function formatExistingBirthDate(value) {
         return '';
     }
 
-    if (
-        /^\d{4}-\d{2}-\d{2} (0[1-9]|1[0-2]):[0-5]\d (AM|PM)$/i.test(text)
-    ) {
+    if (/^\d{4}-\d{2}-\d{2} (0[1-9]|1[0-2]):[0-5]\d (AM|PM)$/i.test(text)) {
         return text;
     }
 
@@ -145,19 +139,12 @@ function Field({
                 ]}
             />
 
-            {hint ? (
-                <Text style={styles.hint}>{hint}</Text>
-            ) : null}
+            {hint ? <Text style={styles.hint}>{hint}</Text> : null}
         </View>
     );
 }
 
-function ChoiceField({
-    label,
-    value,
-    choices,
-    onChange,
-}) {
+function ChoiceField({ label, value, choices, onChange }) {
     return (
         <View style={styles.field}>
             <Text style={styles.label}>{label}</Text>
@@ -173,14 +160,14 @@ function ChoiceField({
                                 styles.choice,
                                 selected && styles.selectedChoice,
                             ]}
-                            onPress={() =>
-                                onChange(selected ? '' : choice)
-                            }>
+                            onPress={() => onChange(selected ? '' : choice)}
+                        >
                             <Text
                                 style={[
                                     styles.choiceText,
                                     selected && styles.selectedChoiceText,
-                                ]}>
+                                ]}
+                            >
                                 {choice}
                             </Text>
                         </TouchableOpacity>
@@ -189,9 +176,7 @@ function ChoiceField({
             </View>
 
             {value && !choices.includes(value) ? (
-                <Text style={styles.hint}>
-                    Current value: {value}
-                </Text>
+                <Text style={styles.hint}>Current value: {value}</Text>
             ) : null}
         </View>
     );
@@ -203,25 +188,26 @@ export default function EditPersonalScreen() {
     const { user, refreshUser } = useAuth();
     const member = user?.data?.member || user?.member || user;
 
-    const initial = useMemo(() => ({
-        birth_date_time: formatExistingBirthDate(
+    const initial = useMemo(
+        () => ({
+            birth_date_time: formatExistingBirthDate(member?.birth_date_time),
+            birth_place: asText(member?.birth_place),
+            height: heightLabel(member?.height),
+            blood_group: asText(member?.blood_group),
+            marital_status: asText(member?.marital_status),
+            no_of_child: asText(member?.no_of_child),
+            health_info: asText(member?.health_info),
+        }),
+        [
             member?.birth_date_time,
-        ),
-        birth_place: asText(member?.birth_place),
-        height: asText(member?.height),
-        blood_group: asText(member?.blood_group),
-        marital_status: asText(member?.marital_status),
-        no_of_child: asText(member?.no_of_child),
-        health_info: asText(member?.health_info),
-    }), [
-        member?.birth_date_time,
-        member?.birth_place,
-        member?.height,
-        member?.blood_group,
-        member?.marital_status,
-        member?.no_of_child,
-        member?.health_info,
-    ]);
+            member?.birth_place,
+            member?.height,
+            member?.blood_group,
+            member?.marital_status,
+            member?.no_of_child,
+            member?.health_info,
+        ],
+    );
 
     const [form, setForm] = useState(initial);
     const [saving, setSaving] = useState(false);
@@ -256,10 +242,7 @@ export default function EditPersonalScreen() {
         });
 
         if (Object.keys(changed).length === 0) {
-            Alert.alert(
-                'No Changes',
-                'You have not changed any details.',
-            );
+            Alert.alert('No Changes', 'You have not changed any details.');
             return;
         }
 
@@ -274,35 +257,20 @@ export default function EditPersonalScreen() {
         }
 
         if ('height' in changed && changed.height) {
-            const heightMatch = changed.height.match(
-                /^(\d+)ft\s(\d+)in$/,
-            );
-
-            if (
-                !heightMatch ||
-                Number(heightMatch[1]) < 3 ||
-                Number(heightMatch[1]) > 8 ||
-                Number(heightMatch[2]) > 11
-            ) {
+            if (!HEIGHT_OPTIONS.includes(changed.height)) {
                 Alert.alert(
                     'Invalid Height',
-                    'Enter height like 5ft 6in.',
+                    'Select a height from 4 ft to 7 ft.',
                 );
                 return;
             }
+            changed.height = heightValue(changed.height);
         }
 
-        if (
-            'no_of_child' in changed &&
-            changed.no_of_child !== null
-        ) {
+        if ('no_of_child' in changed && changed.no_of_child !== null) {
             const count = Number(changed.no_of_child);
 
-            if (
-                !Number.isInteger(count) ||
-                count < 0 ||
-                count > 20
-            ) {
+            if (!Number.isInteger(count) || count < 0 || count > 20) {
                 Alert.alert(
                     'Invalid Value',
                     'Number of children must be between 0 and 20.',
@@ -330,10 +298,7 @@ export default function EditPersonalScreen() {
                 ],
             );
         } catch (error) {
-            Alert.alert(
-                'Unable to save',
-                getErrorMessage(error),
-            );
+            Alert.alert('Unable to save', getErrorMessage(error));
         } finally {
             setSaving(false);
         }
@@ -344,8 +309,8 @@ export default function EditPersonalScreen() {
             style={styles.container}
             contentContainerStyle={styles.content}
             keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={false}>
-
+            showsVerticalScrollIndicator={false}
+        >
             <View style={styles.heading}>
                 <Text style={styles.title}>Personal Details</Text>
                 <Text style={styles.subtitle}>
@@ -364,9 +329,7 @@ export default function EditPersonalScreen() {
                 <Field
                     label="Date & Time of Birth"
                     value={form.birth_date_time}
-                    onChangeText={value =>
-                        update('birth_date_time', value)
-                    }
+                    onChangeText={value => update('birth_date_time', value)}
                     placeholder="1996-05-20 08:30 AM"
                     hint="Format: YYYY-MM-DD hh:mm AM/PM"
                 />
@@ -374,75 +337,61 @@ export default function EditPersonalScreen() {
                 <Field
                     label="Place of Birth"
                     value={form.birth_place}
-                    onChangeText={value =>
-                        update('birth_place', value)
-                    }
+                    onChangeText={value => update('birth_place', value)}
                     placeholder="e.g. Kangra"
                 />
 
-                <Field
-                    label="Height"
-                    value={form.height}
-                    onChangeText={value =>
-                        update('height', value)
-                    }
-                    placeholder="5ft 6in"
-                    hint="Example: 5ft 6in"
-                />
+                <View style={styles.field}>
+                    <Text style={styles.label}>Height</Text>
+                    <SelectField
+                        label="Height"
+                        value={form.height}
+                        options={HEIGHT_OPTIONS}
+                        disabled={saving}
+                        onChange={value => update('height', value)}
+                    />
+                </View>
 
                 <ChoiceField
                     label="Blood Group"
                     value={form.blood_group}
                     choices={BLOOD_GROUPS}
-                    onChange={value =>
-                        update('blood_group', value)
-                    }
+                    onChange={value => update('blood_group', value)}
                 />
 
                 <ChoiceField
                     label="Marital Status"
                     value={form.marital_status}
                     choices={MARITAL_STATUSES}
-                    onChange={value =>
-                        update('marital_status', value)
-                    }
+                    onChange={value => update('marital_status', value)}
                 />
 
                 <Field
                     label="Number of Children"
                     value={form.no_of_child}
                     keyboardType="number-pad"
-                    onChangeText={value =>
-                        update('no_of_child', value)
-                    }
+                    onChangeText={value => update('no_of_child', value)}
                     placeholder="0"
                 />
 
                 <Field
                     label="Health Information"
                     value={form.health_info}
-                    onChangeText={value =>
-                        update('health_info', value)
-                    }
+                    onChangeText={value => update('health_info', value)}
                     placeholder="Any health information you wish to share"
                     multiline
                 />
             </View>
 
             <TouchableOpacity
-                style={[
-                    styles.saveButton,
-                    saving && styles.disabledButton,
-                ]}
+                style={[styles.saveButton, saving && styles.disabledButton]}
                 onPress={handleSave}
-                disabled={saving}>
-
+                disabled={saving}
+            >
                 {saving ? (
                     <ActivityIndicator color="#FFFFFF" />
                 ) : (
-                    <Text style={styles.saveText}>
-                        Save Personal Details
-                    </Text>
+                    <Text style={styles.saveText}>Save Personal Details</Text>
                 )}
             </TouchableOpacity>
         </ScrollView>

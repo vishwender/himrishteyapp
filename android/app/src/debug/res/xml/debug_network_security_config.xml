@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- Preserve React Native debug Metro access; no release configuration change. -->
+    <base-config cleartextTrafficPermitted="true">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+    <!-- Trust this machine's public DDEV CA only for the local API hostname. -->
+    <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="false">production.ddev.site</domain>
+        <trust-anchors>
+            <certificates src="system" />
+            <certificates src="@raw/ddev_ca" />
+        </trust-anchors>
+    </domain-config>
+</network-security-config>

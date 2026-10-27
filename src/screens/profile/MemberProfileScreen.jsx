@@ -1,6 +1,7 @@
+import ProfilePhoto from '../../components/ProfilePhoto';
 import AppIcon from '../../components/AppIcon';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, Alert, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View, } from 'react-native';
+import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View, } from 'react-native';
 
 import { getMemberProfile } from '../../api/memberApi';
 import { notifyShortlistChanged, } from '../../services/shortlistSync';
@@ -384,11 +385,11 @@ export default function MemberProfileScreen({ route, navigation }) {
       <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <View style={styles.hero}>
           {photo ? (
-            <Image source={{ uri: photo }} style={styles.heroPhoto} resizeMode="cover" />
+            <ProfilePhoto uri={photo} style={styles.heroPhoto} accessibilityLabel="Member profile photo" />
           ) : (
             <View style={styles.noPhoto}><AppIcon name="user" style={styles.noPhotoIcon} /><Text style={styles.noPhotoText}>Photo not available</Text></View>
           )}
-          <View style={styles.photoTopRow}>
+          <View style={styles.photoTopRow} pointerEvents="none">
             {verifiedMember(member) ? <View style={styles.verifyBadge}><Text style={styles.verifyText}>Verified Profile</Text></View> : <View />}
             <View style={styles.idBadge}><Text style={styles.idText}>{display(member.profile_id)}</Text></View>
           </View>

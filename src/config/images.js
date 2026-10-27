@@ -1,5 +1,10 @@
+import { API_CONFIG } from './api';
+
 export const IMAGE_CONFIG = {
-  profileBaseURL: 'https://himrishtey.com/photos/photo/',
+  profileBaseURL: `${API_CONFIG.baseURL.replace(
+    /\/api\/v1\/?$/,
+    '',
+  )}/photos/photo/`,
 };
 
 export function getProfileImage(photo) {
@@ -27,8 +32,5 @@ export function getProfileImage(photo) {
     return null;
   }
 
-  return (
-    IMAGE_CONFIG.profileBaseURL +
-    encodeURIComponent(filename)
-  );
+  return IMAGE_CONFIG.profileBaseURL + encodeURIComponent(filename);
 }

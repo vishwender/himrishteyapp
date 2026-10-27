@@ -1,6 +1,6 @@
 export const API_CONFIG = {
-  // USB development: adb reverse tcp:8082 tcp:<DDEV web HTTP host port>.
-  baseURL: 'http://127.0.0.1:8082/api/v1',
+  // USB DDEV HTTPS: adb reverse tcp:8443 tcp:443 (debug build trusts local CA).
+  baseURL: 'https://production.ddev.site:8443/api/v1',
   appCode: 'himrishtey',
   timeout: 15000,
 };
