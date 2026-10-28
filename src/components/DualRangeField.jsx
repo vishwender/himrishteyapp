@@ -162,9 +162,9 @@ export default function DualRangeField({
 const styles = StyleSheet.create({
   field: { marginBottom: 24 },
   heading: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: '700',
-    color: colors.text,
+    color: colors.title,
     marginBottom: 8,
   },
   inset: { marginHorizontal: 18 },

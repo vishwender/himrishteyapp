@@ -1,5 +1,64 @@
 # HimRishtey task checklist
 
+### T1.3 Supplied HimShaadi logo launcher icon — 2026-10-28
+
+- Prepared a square master from the user's red/pink circle and white wordmark using the imagegen skill; saved assets/branding/himshaadi-logo-icon.png and prompt/provenance in branding README. Replaced Android legacy/adaptive and iOS AppIcon PNGs; white adaptive background and centered safe-zone artwork. Previous wedding-knot source retained.
+- PNG dimension/opacity and adaptive XML checks, `git diff --check`: PASS. Device-targeted `npm run android -- --no-packager --active-arch-only --deviceId 21cf0e18`: Android assembleDebug PASS; phone installation FAIL with INSTALL_FAILED_UPDATE_INCOMPATIBLE (installed com.himshaadi signature differs). Earlier automatic run also failed installing to an unready emulator. No signing changes or uninstall/data removal performed. iOS build and updated on-device launcher visual check NOT RUN.
+
+### T1.3 / T4.1 Verified badges across categories — 2026-10-28
+
+- Found main discovery card ignored member_type and ProfileMatchingService CARD_FIELDS omitted it. Added shared explicit verification normalization (member_type=Verified, trimmed/case-insensitive, or existing positive verification flags); Home/search cards, legacy cards and profile details now use it. Added compact verified badges to activity profile lists and interest cards. No verification inferred from category, membership or match score.
+- Approved local Laravel source edits outside app workspace: ProfileMatchingService includes member_type for all discovery sections; SearchController selects/returns it for nearby, quick/advanced search and profile details; SentInterestController returns it for sent/received counterpart members. No routes, auth, filters, pagination, schema or database writes changed.
+- Existing Bearer/X-App-Code GET discovery/search/interest contracts retain requests and response envelopes, with additive member_type on each profile/member (e.g. {id:123,member_type:"Verified"}; other/missing values do not imply verification). Existing validation and pagination remain authoritative. App currently targets https://himrishtey.com/api/v1: remote backend must receive these source changes for omitted verification fields to become available there; no deployment performed.
+- Targeted Jest: PASS, 5 suites / 30 tests, including verified/unverified/missing status, supported flag encodings, Matches score plus verified badge, and compact badges. Existing Interests test now mocks newly reached AppIcon dependency. Targeted ESLint, three backend PHP syntax checks and `git diff --check`: PASS. No live authenticated API/database verification or Android visual/native build performed.
+
+### T1.3 Outline footer icons — 2026-10-28
+
+- Removed focused-state icon fill from bottom navigation. Icons retain transparent interiors and colored outlines: purple when active, existing muted color when inactive.
+- `npx eslint src/navigation/MainTabs.jsx` and `git diff --check`: PASS. Device visual check not run.
+
+### T1.3 Slight footer transparency — 2026-10-28
+
+- Reviewed the supplied screenshot: full transparency lets photo/card text compete with footer controls. Changed the tab bar to 95% opaque white (5% transparency), retaining the borderless, shadowless surface. Supersedes the fully transparent footer preference.
+- `npx eslint src/navigation/MainTabs.jsx` and `git diff --check`: PASS. Updated device visual check not run.
+
+### T1.3 Transparent footer background — 2026-10-28
+
+- Updated the bottom tab bar background to fully transparent per user preference, superseding the opaque footer surface change. Border, elevation and shadow remain removed.
+- `npx eslint src/navigation/MainTabs.jsx` and `git diff --check`: PASS. Device visual check not run.
+
+### T1.3 Uniform footer surface — 2026-10-28
+
+- Replaced the bottom tab bar's translucent white with opaque theme white, preventing underlying scrolling content from tinting the footer. Removed top border and Android elevation/iOS shadow for an even surface.
+- `npx eslint src/navigation/MainTabs.jsx` and `git diff --check`: PASS. Device visual check not run; no new tests or native rebuild for this style-only change.
+
+### T1.3 Recent and Activities icons — 2026-10-28
+
+- Recent category now uses Lucide UserRoundPlus for recently joined members; Activities footer uses ListChecks for the activity overview. Added semantic mappings to AppIcon using the existing dependency.
+- Installed Lucide exports verified. Targeted ESLint for AppIcon/HomeScreen/MainTabs and `git diff --check`: PASS. Device visual check not run; no new tests for this icon-only change.
+
+### T1.1 / T1.3 Consistent title typography — 2026-10-28
+
+- Added shared colors.title (#000000) and applied it to screen, section, card/menu, empty-state and modal title/heading styles. Increased existing title sizes by 1 React Native unit, with explicit 15 for titles previously inheriting the default 14; adjusted explicit title line heights by 1. Native-stack titles explicitly use black/19. Body/subtitle styling retained.
+- Profile photo viewer title is black/19 on a white header with a black close icon for readable contrast; image area remains dark.
+- `npm run lint`: FAIL on 4 existing WalletScreen duplicate style keys; 2 existing navigation warnings. `npm test -- --runInBand`: 19 suites / 118 tests PASS, 2 suites blocked by existing React Navigation ESM parsing (App/interestFlow). Source parsing and title color/import audit: PASS. `git diff --check`: PASS. No new tests for styling; native rebuild and device visual/font-scaling checks NOT RUN.
+
+### T1.3 Home category cleanup — 2026-10-28
+
+- Removed Shortlisted from the top Home categories; Matches, Recent, Verified and Near Me remain. Profile shortlist actions and Activities shortlist access are retained. Updated existing cached-tab regression to the current categories and accessible tab labels.
+- Targeted ESLint for HomeScreen/interestFlow test and `git diff --check`: PASS. `npm test -- --runInBand __tests__/interestFlow.test.jsx`: blocked by existing bottom-tabs ESM parsing. A temporary bottom-tabs mock exposed missing safe-area context (6 passed / 11 failed); mock removed, test setup changes deferred. Device visual check not run.
+
+### T1.3 Android namespace and Gradle correction — 2026-10-28
+
+- Aligned namespace and Kotlin package declarations/source folders with com.himshaadi. Corrected the existing upload-signing release block nesting under signingConfigs; buildTypes.release still selects debug signing. No release signing verification performed.
+- Initial build failed on misplaced release block; next build exposed stale generated autolinking references. Gradle clean passed; retained root generated autolinking cache was removed and regenerated with com.himshaadi. Full architecture rebuild interrupted in favor of device-only verification.
+- `npm run android -- --no-packager --active-arch-only`: PASS, BUILD SUCCESSFUL; arm64-v8a APK installed on ONEPLUS A5000 (Android 10) and launched com.himshaadi/.MainActivity. `git diff --check`: PASS. Existing deprecation warnings remain. Other architectures, release build, interactive screen smoke, lint and Jest not run for this native configuration change.
+
+### T1.3 Android application ID — 2026-10-28
+
+- Changed Android applicationId from com.himrishteyapp to com.himshaadi. Native namespace/classes remain compatible; the new ID installs separately with independent app data.
+- `npm run android -- --no-packager`: PASS, BUILD SUCCESSFUL; installed on ONEPLUS A5000 (Android 10) and launched com.himshaadi/com.himrishteyapp.MainActivity. Existing Gradle deprecation warnings remain. Interactive screen smoke, lint and Jest not run for this Gradle-only change.
+
 ### T4.1 shortlist profile card layout — 2026-10-27
 
 - Shortlisted Profiles now uses the same Interests-style photo/initials card as viewers and likes: name, profile ID, location and Shortlisted profile caption. Existing profile navigation and pagination retained.

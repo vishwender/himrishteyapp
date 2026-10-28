@@ -336,9 +336,9 @@ const styles = StyleSheet.create({
         paddingBottom: 45,
     },
     title: {
-        fontSize: 25,
+        fontSize: 26,
         fontWeight: '800',
-        color: colors.text,
+        color: colors.title,
     },
     subtitle: {
         marginTop: 6,
@@ -356,9 +356,9 @@ const styles = StyleSheet.create({
         marginBottom: 16,
     },
     sectionTitle: {
-        fontSize: 17,
+        fontSize: 18,
         fontWeight: '800',
-        color: colors.text,
+        color: colors.title,
         marginBottom: 14,
     },
     primaryPhotoBox: {

@@ -13,6 +13,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { getDiscoverProfiles } from '../../api/homeApi';
 import AppIcon from '../../components/AppIcon';
+import VerifiedBadge from '../../components/VerifiedBadge';
 import colors from '../../theme/colors';
 import { getProfileImage } from '../../config/images';
 
@@ -136,6 +137,7 @@ export default function ActivityProfilesScreen({ route, navigation }) {
                 <Text numberOfLines={1} style={styles.name}>
                   {item.full_name || 'Profile unavailable'}
                 </Text>
+                <VerifiedBadge member={item} />
                 <Text style={styles.profileId}>
                   {item.profile_id || 'Unknown profile'}
                 </Text>
@@ -162,6 +164,7 @@ export default function ActivityProfilesScreen({ route, navigation }) {
                 <Text style={styles.name}>
                   {item.full_name || item.profile_id || 'Member'}
                 </Text>
+                <VerifiedBadge member={item} />
                 <Text style={styles.location}>
                   {[item.city_living_in, item.state_living_in]
                     .filter(Boolean)

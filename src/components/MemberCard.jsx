@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 
 import colors from '../theme/colors';
+import {isVerifiedMember} from '../services/memberVerification';
 import {getProfileImage} from '../config/images';
 
 function MemberCard({member, onPress}) {
@@ -50,7 +51,7 @@ function MemberCard({member, onPress}) {
           </View>
         )}
 
-        {member.member_type === 'Verified' && (
+        {isVerifiedMember(member) && (
           <View style={styles.verifiedBadge}>
             <Text style={styles.verifiedText}>
               ✓ Verified

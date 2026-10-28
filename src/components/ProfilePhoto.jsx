@@ -73,7 +73,7 @@ export default function ProfilePhoto({
                 onPress={close}
                 style={styles.close}
               >
-                <AppIcon name="close" color={colors.white} size={26} />
+                <AppIcon name="close" color={colors.title} size={26} />
               </TouchableOpacity>
             </View>
             <View style={styles.imageArea}>
@@ -123,12 +123,13 @@ const styles = StyleSheet.create({
   thumbnail: { width: '100%', height: '100%' },
   screen: { flex: 1, backgroundColor: '#000000' },
   header: {
+    backgroundColor: colors.white,
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 8,
   },
-  title: { flex: 1, color: colors.white, fontSize: 18, fontWeight: '700' },
+  title: { flex: 1, color: colors.title, fontSize: 19, fontWeight: '700' },
   close: {
     minWidth: 48,
     minHeight: 48,

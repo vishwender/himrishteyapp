@@ -1,4 +1,5 @@
 import ProfilePhoto from '../../components/ProfilePhoto';
+import {isVerifiedMember} from '../../services/memberVerification';
 import AppIcon from '../../components/AppIcon';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View, } from 'react-native';
@@ -43,13 +44,6 @@ function getAge(dateValue) {
 
 function errorMessage(error) {
   return error?.response?.data?.message || error?.message || 'Something went wrong. Please try again.';
-}
-
-function verifiedMember(member) {
-  // Only display the badge when the API explicitly says the profile is verified.
-  return [member?.is_verified, member?.verified, member?.profile_verified].some(
-    value => value === true || value === 1 || String(value).trim().toLowerCase() === 'yes',
-  );
 }
 
 function DetailRow({ label, value }) {
@@ -390,7 +384,7 @@ export default function MemberProfileScreen({ route, navigation }) {
             <View style={styles.noPhoto}><AppIcon name="user" style={styles.noPhotoIcon} /><Text style={styles.noPhotoText}>Photo not available</Text></View>
           )}
           <View style={styles.photoTopRow} pointerEvents="none">
-            {verifiedMember(member) ? <View style={styles.verifyBadge}><Text style={styles.verifyText}>Verified Profile</Text></View> : <View />}
+            {isVerifiedMember(member) ? <View style={styles.verifyBadge}><Text style={styles.verifyText}>Verified Profile</Text></View> : <View />}
             <View style={styles.idBadge}><Text style={styles.idText}>{display(member.profile_id)}</Text></View>
           </View>
           <TouchableOpacity
@@ -656,7 +650,7 @@ const styles = StyleSheet.create({
   sectionHeading: { flexDirection: 'row', alignItems: 'center', marginBottom: 11 },
   sectionIcon: { width: 31, height: 31, borderRadius: 10, backgroundColor: colors.primaryLight, alignItems: 'center', justifyContent: 'center', marginRight: 10 },
   sectionIconText: { fontSize: 16, color: colors.primary },
-  sectionTitle: { fontSize: 16, fontWeight: '800', color: colors.text, flex: 1 },
+  sectionTitle: { fontSize: 17, fontWeight: '800', color: colors.title, flex: 1 },
   sectionDescription: { fontSize: 13, lineHeight: 21, color: colors.textSecondary, marginBottom: 10 },
   about: { fontSize: 13, lineHeight: 22, color: colors.textSecondary },
   contactNote: { fontSize: 12, lineHeight: 19, color: colors.textSecondary, marginBottom: 12 },

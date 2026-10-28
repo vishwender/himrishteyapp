@@ -87,9 +87,9 @@ const styles = StyleSheet.create({
     maxHeight: '90%',
   },
   title: {
-    fontSize: 20,
+    fontSize: 21,
     fontWeight: '800',
-    color: colors.text,
+    color: colors.title,
     marginBottom: 20,
   },
   label: { fontSize: 13, color: colors.textSecondary, marginBottom: 8 },

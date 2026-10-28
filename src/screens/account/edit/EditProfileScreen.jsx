@@ -182,9 +182,9 @@ const styles = StyleSheet.create({
         marginBottom: 18,
     },
     title: {
-        fontSize: 25,
+        fontSize: 26,
         fontWeight: '800',
-        color: colors.text,
+        color: colors.title,
     },
     subtitle: {
         fontSize: 13,
@@ -206,9 +206,9 @@ const styles = StyleSheet.create({
         marginBottom: 12,
     },
     progressTitle: {
-        fontSize: 14,
+        fontSize: 15,
         fontWeight: '700',
-        color: colors.text,
+        color: colors.title,
     },
     progressValue: {
         fontSize: 14,
@@ -227,9 +227,9 @@ const styles = StyleSheet.create({
         backgroundColor: colors.primary,
     },
     sectionHeading: {
-        fontSize: 17,
+        fontSize: 18,
         fontWeight: '800',
-        color: colors.text,
+        color: colors.title,
         marginBottom: 13,
     },
     listCard: {
@@ -264,9 +264,9 @@ const styles = StyleSheet.create({
         paddingHorizontal: 13,
     },
     itemTitle: {
-        fontSize: 14,
+        fontSize: 15,
         fontWeight: '700',
-        color: colors.text,
+        color: colors.title,
     },
     itemDescription: {
         fontSize: 11,

@@ -285,9 +285,9 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
   },
   title: {
-    fontSize: 22,
+    fontSize: 23,
     fontWeight: '700',
-    color: colors.text,
+    color: colors.title,
     marginBottom: 16,
   },
   columns: { flexDirection: 'row', height: 260, gap: 8, flexShrink: 1 },

@@ -310,10 +310,10 @@ const styles = StyleSheet.create({
     marginTop: 22,
   },
   heroTitle: {
-    fontSize: 30,
+    fontSize: 31,
     fontWeight: '800',
-    lineHeight: 37,
-    color: colors.text,
+    lineHeight: 38,
+    color: colors.title,
   },
   heroDescription: {
     color: colors.textSecondary,
@@ -357,9 +357,9 @@ const styles = StyleSheet.create({
     color: colors.primary,
   },
   heading: {
-    fontSize: 25,
+    fontSize: 26,
     fontWeight: '800',
-    color: colors.text,
+    color: colors.title,
   },
   description: {
     fontSize: 14,

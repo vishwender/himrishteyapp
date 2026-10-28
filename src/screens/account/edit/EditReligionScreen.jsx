@@ -311,9 +311,9 @@ const styles = StyleSheet.create({
         paddingVertical: 12,
     },
     title: {
-        fontSize: 24,
+        fontSize: 25,
         fontWeight: '800',
-        color: colors.text,
+        color: colors.title,
     },
     subtitle: {
         fontSize: 13,

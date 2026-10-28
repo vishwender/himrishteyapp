@@ -9,7 +9,7 @@ import colors from '../theme/colors';
 const Stack = createNativeStackNavigator();
 export default function ActivitiesNavigator() {
   return (
-    <Stack.Navigator screenOptions={{ headerTintColor: colors.primary }}>
+    <Stack.Navigator screenOptions={{ headerTintColor: colors.primary, headerTitleStyle: { color: colors.title, fontSize: 19 } }}>
       <Stack.Screen
         name="ActivityOverview"
         component={ActivitiesScreen}

@@ -1,5 +1,15 @@
 # HimShaadi launcher icon
 
+## Current logo icon — 2026-10-28
+
+`himshaadi-logo-icon.png` is the active master, prepared with the built-in imagegen skill from the user's supplied red/pink circle and white HimShaadi wordmark. Android density PNGs, adaptive foreground and iOS AppIcon PNGs are resized from this master. Adaptive background is white; artwork stays inside its safe zone. iOS icons are opaque RGB. The earlier wedding-knot master below is retained as a previous version.
+
+Preparation prompt:
+
+Prepare this exact supplied HimShaadi logo as a square 1024x1024 app icon master. Preserve the exact hot pink/red circle, white HimShaadi wordmark, spelling, type shape, proportions, and flat design. Remove the excess white left/right margins by reframing into a square. Center the full circle on pure white with a modest 8% margin so no text or circle is cropped. Do not redesign, add decoration, change wording, or add shadows. Output one square image.
+
+## Previous wedding-knot icon
+
 Source: `himshaadi-icon.png`, generated using the built-in image generation tool from the user's wedding-scarf reference on 2026-10-28.
 
 Prompt:

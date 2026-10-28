@@ -63,6 +63,6 @@ const styles = StyleSheet.create({
   },
   icon: { backgroundColor: '#F2EDFF', padding: 9, borderRadius: 12 },
   info: { flex: 1 },
-  title: { fontSize: 14, fontWeight: '600', color: colors.text },
+  title: { fontSize: 15, fontWeight: '600', color: colors.title },
   subtitle: { fontSize: 11, color: colors.textSecondary, marginTop: 5 },
 });

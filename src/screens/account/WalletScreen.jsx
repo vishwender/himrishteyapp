@@ -414,9 +414,9 @@ const styles = StyleSheet.create({
         color: colors.textSecondary,
     },
     title: {
-        fontSize: 24,
+        fontSize: 25,
         fontWeight: '800',
-        color: colors.text,
+        color: colors.title,
     },
     subtitle: {
         fontSize: 13,
@@ -482,9 +482,9 @@ const styles = StyleSheet.create({
         marginBottom: 15,
     },
     sectionTitle: {
-        fontSize: 18,
+        fontSize: 19,
         fontWeight: '800',
-        color: colors.text,
+        color: colors.title,
     },
     count: {
         fontSize: 12,
@@ -522,9 +522,9 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     transactionTitle: {
-        fontSize: 13,
+        fontSize: 14,
         fontWeight: '800',
-        color: colors.text,
+        color: colors.title,
     },
     date: {
         fontSize: 11,
@@ -577,9 +577,9 @@ const styles = StyleSheet.create({
         padding: 17,
     },
     offerTitle: {
-        fontSize: 15,
+        fontSize: 16,
         fontWeight: '800',
-        color: colors.text,
+        color: colors.title,
     },
     offerDescription: {
         fontSize: 12,
@@ -616,9 +616,9 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     offerTitle: {
-        fontSize: 15,
+        fontSize: 16,
         fontWeight: '800',
-        color: colors.text,
+        color: colors.title,
     },
     offerDescription: {
         marginTop: 6,

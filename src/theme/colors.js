@@ -5,6 +5,7 @@ const colors = {
   background: '#F9F8FF',
   white: '#FFFFFF',
   text: '#111936',
+  title: '#000000',
   textSecondary: '#687089',
   border: '#DDD9EE',
   error: '#D92D20',

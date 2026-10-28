@@ -313,7 +313,7 @@ export default function MembershipWalletScreen() {
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#FAF9FF' },
     content: { padding: 16, paddingBottom: 40 },
-    title: { fontSize: 24, fontWeight: '800', color: colors.text },
+    title: { fontSize: 25, fontWeight: '800', color: colors.title },
     subtitle: {
         fontSize: 13,
         color: colors.textSecondary,
@@ -351,9 +351,9 @@ const styles = StyleSheet.create({
         marginBottom: 16,
     },
     sectionTitle: {
-        fontSize: 17,
+        fontSize: 18,
         fontWeight: '800',
-        color: colors.text,
+        color: colors.title,
         marginBottom: 10,
     },
     helper: {

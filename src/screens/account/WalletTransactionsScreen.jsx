@@ -170,9 +170,9 @@ const styles = StyleSheet.create({
         marginTop: 10,
     },
     heading: {
-        fontSize: 18,
+        fontSize: 19,
         fontWeight: '800',
-        color: colors.text,
+        color: colors.title,
         marginHorizontal: 16,
         marginBottom: 10,
     },
@@ -199,9 +199,9 @@ const styles = StyleSheet.create({
     icon: { fontSize: 20, color: colors.primary },
     transactionDetails: { flex: 1 },
     transactionTitle: {
-        fontSize: 13,
+        fontSize: 14,
         fontWeight: '800',
-        color: colors.text,
+        color: colors.title,
     },
     date: {
         fontSize: 10,

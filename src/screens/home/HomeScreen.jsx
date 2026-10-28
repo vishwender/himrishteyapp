@@ -65,19 +65,13 @@ const TABS = [
     id: 'recent',
     section: 'recently_joined',
     title: 'Recently Joined',
-    icon: 'recent',
+    icon: 'recentlyJoined',
   },
   {
     id: 'verified',
     section: 'verified',
     title: 'Verified Profiles',
     icon: 'verified',
-  },
-  {
-    id: 'shortlisted',
-    section: 'shortlisted',
-    title: 'Shortlisted',
-    icon: 'bookmark',
   },
   {
     id: 'nearby',
@@ -832,7 +826,7 @@ export default function HomeScreen() {
                   styles.tabText,
                   active && styles.activeTabText,
                 ]}>
-                {{matches: 'Matches', recent: 'Recent', verified: 'Verified', shortlisted: 'Shortlisted'}[tab.id] || tab.title}
+                {{matches: 'Matches', recent: 'Recent', verified: 'Verified'}[tab.id] || tab.title}
               </Text>
               <View style={[styles.tabUnderline, active && styles.activeTabUnderline]} />
             </TouchableOpacity>
@@ -1131,9 +1125,9 @@ const styles = StyleSheet.create({
   },
 
   sectionTitle: {
-    fontSize: 17,
+    fontSize: 18,
     fontWeight: '800',
-    color: colors.text,
+    color: colors.title,
   },
 
   sectionCount: {
@@ -1155,9 +1149,9 @@ const styles = StyleSheet.create({
   },
 
   emptyTitle: {
-    fontSize: 17,
+    fontSize: 18,
     fontWeight: '800',
-    color: colors.text,
+    color: colors.title,
     textAlign: 'center',
   },
 

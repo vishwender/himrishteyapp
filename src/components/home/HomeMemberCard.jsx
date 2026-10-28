@@ -1,4 +1,5 @@
 import AppIcon from '../AppIcon';
+import {isVerifiedMember} from '../../services/memberVerification';
 
 import React, { useId, useState } from 'react';
 import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
@@ -112,14 +113,7 @@ export default function HomeMemberCard({
     .join(', ');
 
   // Verification status
-  const verified = [
-    member?.is_verified,
-    member?.verified,
-    member?.profile_verified,
-  ].some(
-    value =>
-      value === true || value === 1 || String(value).toLowerCase() === 'yes',
-  );
+  const verified = isVerifiedMember(member);
 
   // Member photo
   const imageUrl = member?.photo ? getProfileImage(member.photo) : null;

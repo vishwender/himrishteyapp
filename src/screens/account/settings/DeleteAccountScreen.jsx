@@ -426,9 +426,9 @@ const styles = StyleSheet.create({
         color: colors.textSecondary,
     },
     title: {
-        fontSize: 24,
+        fontSize: 25,
         fontWeight: '800',
-        color: colors.text,
+        color: colors.title,
     },
     subtitle: {
         marginTop: 7,
@@ -446,9 +446,9 @@ const styles = StyleSheet.create({
         marginBottom: 16,
     },
     sectionTitle: {
-        fontSize: 17,
+        fontSize: 18,
         fontWeight: '800',
-        color: colors.text,
+        color: colors.title,
         marginBottom: 17,
     },
     infoCard: {
@@ -458,9 +458,9 @@ const styles = StyleSheet.create({
         marginBottom: 18,
     },
     infoTitle: {
-        fontSize: 15,
+        fontSize: 16,
         fontWeight: '800',
-        color: colors.text,
+        color: colors.title,
         marginBottom: 9,
     },
     infoText: {
@@ -584,9 +584,9 @@ const styles = StyleSheet.create({
         padding: 18,
     },
     pendingTitle: {
-        fontSize: 19,
+        fontSize: 20,
         fontWeight: '800',
-        color: '#956100',
+        color: colors.title,
         marginBottom: 12,
     },
     detailRow: {
@@ -626,9 +626,9 @@ const styles = StyleSheet.create({
         marginBottom: 16,
     },
     historyTitle: {
-        fontSize: 15,
+        fontSize: 16,
         fontWeight: '800',
-        color: colors.text,
+        color: colors.title,
         marginBottom: 8,
     },
 });

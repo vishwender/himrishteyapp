@@ -304,9 +304,9 @@ const styles = StyleSheet.create({
         paddingVertical: 12,
     },
     title: {
-        fontSize: 24,
+        fontSize: 25,
         fontWeight: '800',
-        color: colors.text,
+        color: colors.title,
     },
     subtitle: {
         marginTop: 7,
@@ -323,9 +323,9 @@ const styles = StyleSheet.create({
         marginTop: 12,
     },
     sectionTitle: {
-        fontSize: 17,
+        fontSize: 18,
         fontWeight: '800',
-        color: colors.text,
+        color: colors.title,
         marginBottom: 20,
     },
     field: {

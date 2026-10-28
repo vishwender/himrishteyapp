@@ -381,9 +381,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
   },
   headerTitle: {
-    fontSize: 25,
+    fontSize: 26,
     fontWeight: '800',
-    color: colors.text,
+    color: colors.title,
   },
   headerSubtitle: {
     fontSize: 13,
@@ -447,9 +447,9 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   completionTitle: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: '700',
-    color: colors.text,
+    color: colors.title,
   },
   completionValue: {
     fontSize: 13,
@@ -483,9 +483,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     marginTop: 10,
     marginBottom: 12,
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: '800',
-    color: colors.text,
+    color: colors.title,
   },
   menuCard: {
     marginHorizontal: 16,
@@ -517,9 +517,9 @@ const styles = StyleSheet.create({
     marginLeft: 13,
   },
   menuTitle: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '700',
-    color: colors.text,
+    color: colors.title,
   },
   menuSubtitle: {
     fontSize: 11,

@@ -583,8 +583,8 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     flex: 1,
-    color: colors.text,
-    fontSize: 16,
+    color: colors.title,
+    fontSize: 17,
     fontWeight: '700',
   },
   editButton: {

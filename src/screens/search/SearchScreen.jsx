@@ -740,9 +740,9 @@ const styles = StyleSheet.create({
     paddingBottom: 15,
   },
   title: {
-    fontSize: 25,
+    fontSize: 26,
     fontWeight: '800',
-    color: colors.text,
+    color: colors.title,
   },
   subtitle: {
     fontSize: 13,
@@ -814,9 +814,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   sectionHeading: {
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: '800',
-    color: colors.text,
+    color: colors.title,
     marginTop: 7,
     marginBottom: 15,
   },
@@ -842,9 +842,9 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   resultsTitle: {
-    fontSize: 18,
+    fontSize: 19,
     fontWeight: '800',
-    color: colors.text,
+    color: colors.title,
   },
   resultsCount: {
     fontSize: 12,
@@ -861,9 +861,9 @@ const styles = StyleSheet.create({
     paddingTop: 45,
   },
   emptyTitle: {
-    fontSize: 17,
+    fontSize: 18,
     fontWeight: '800',
-    color: colors.text,
+    color: colors.title,
   },
   emptyMessage: {
     color: colors.textSecondary,

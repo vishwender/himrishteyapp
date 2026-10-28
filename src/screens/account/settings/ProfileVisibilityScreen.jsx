@@ -252,9 +252,9 @@ const styles = StyleSheet.create({
         color: colors.textSecondary,
     },
     title: {
-        fontSize: 24,
+        fontSize: 25,
         fontWeight: '800',
-        color: colors.text,
+        color: colors.title,
     },
     subtitle: {
         fontSize: 13,
@@ -271,9 +271,9 @@ const styles = StyleSheet.create({
         borderColor: '#EEEAF7',
     },
     sectionTitle: {
-        fontSize: 17,
+        fontSize: 18,
         fontWeight: '800',
-        color: colors.text,
+        color: colors.title,
         marginBottom: 18,
     },
     statusRow: {
@@ -316,9 +316,9 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     optionTitle: {
-        fontSize: 14,
+        fontSize: 15,
         fontWeight: '800',
-        color: colors.text,
+        color: colors.title,
     },
     optionDescription: {
         marginTop: 5,
@@ -338,8 +338,9 @@ const styles = StyleSheet.create({
         padding: 16,
     },
     infoTitle: {
+        fontSize: 15,
         fontWeight: '800',
-        color: colors.text,
+        color: colors.title,
         marginBottom: 7,
     },
     infoText: {

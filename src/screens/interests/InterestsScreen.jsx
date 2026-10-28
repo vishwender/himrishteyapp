@@ -1,4 +1,5 @@
 // @refresh reset
+import VerifiedBadge from '../../components/VerifiedBadge';
 import {useBottomTabBarHeight} from '@react-navigation/bottom-tabs';
 import React, {
   useCallback,
@@ -128,6 +129,7 @@ function InterestCard({
             style={styles.memberName}>
             {member?.full_name || 'Profile unavailable'}
           </Text>
+          <VerifiedBadge member={member} />
 
           <Text style={styles.profileId}>
             {member?.profile_id || 'Unknown profile'}
@@ -552,9 +554,9 @@ const styles = StyleSheet.create({
     paddingBottom: 16,
   },
   title: {
-    fontSize: 25,
+    fontSize: 26,
     fontWeight: '800',
-    color: colors.text,
+    color: colors.title,
   },
   subtitle: {
     fontSize: 13,
@@ -734,9 +736,9 @@ const styles = StyleSheet.create({
     paddingTop: 80,
   },
   emptyTitle: {
-    fontSize: 17,
+    fontSize: 18,
     fontWeight: '700',
-    color: colors.text,
+    color: colors.title,
   },
   errorBox: {
     padding: 15,

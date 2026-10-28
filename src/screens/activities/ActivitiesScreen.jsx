@@ -124,9 +124,9 @@ const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: '#FAF9FF' },
   content: { padding: 16 },
   title: {
-    fontSize: 22,
+    fontSize: 23,
     fontWeight: '800',
-    color: colors.text,
+    color: colors.title,
     marginBottom: 20,
   },
   card: {
@@ -149,7 +149,7 @@ const styles = StyleSheet.create({
   },
   icon: { backgroundColor: '#F2EDFF', borderRadius: 12, padding: 9 },
   info: { flex: 1 },
-  rowTitle: { fontSize: 14, fontWeight: '600', color: colors.text },
+  rowTitle: { fontSize: 15, fontWeight: '600', color: colors.title },
   subtitle: { fontSize: 11, color: colors.textSecondary, marginTop: 5 },
   count: { fontSize: 16, fontWeight: '700', color: colors.text },
   errorBox: { marginBottom: 12 },

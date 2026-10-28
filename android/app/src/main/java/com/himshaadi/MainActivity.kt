@@ -1,4 +1,4 @@
-package com.himrishteyapp
+package com.himshaadi
 
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate

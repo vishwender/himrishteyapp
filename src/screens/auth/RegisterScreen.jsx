@@ -611,7 +611,7 @@ const styles = StyleSheet.create({
     padding: 20,
     marginTop: 20,
   },
-  title: { fontSize: 25, fontWeight: '800', color: colors.text },
+  title: { fontSize: 26, fontWeight: '800', color: colors.title },
   step: {
     fontSize: 14,
     fontWeight: '700',

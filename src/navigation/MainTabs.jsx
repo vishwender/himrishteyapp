@@ -12,14 +12,14 @@ const Tab = createBottomTabNavigator();
 const icons = {
   Discover: 'home',
   Search: 'search',
-  Activities: 'recent',
+  Activities: 'activities',
   Account: 'user',
 };
 
 const tabIcons = Object.fromEntries(
   Object.entries(icons).map(([route, name]) => [
     route,
-    ({color, size, focused}) => <AppIcon name={name} size={size} color={color} filled={focused} />,
+    ({color, size}) => <AppIcon name={name} size={size} color={color} />,
   ]),
 );
 
@@ -32,11 +32,13 @@ export default function MainTabs() {
         tabBarInactiveTintColor: '#85858F',
         tabBarStyle: {
           position: 'absolute',
-          backgroundColor: 'rgba(255, 255, 255, 0.84)',
+          backgroundColor: 'rgba(255, 255, 255, 0.95)',
           height: 65,
           paddingTop: 6,
           paddingBottom: 8,
-          borderTopColor: '#F0EDF7',
+          borderTopWidth: 0,
+          elevation: 0,
+          shadowOpacity: 0,
         },
         tabBarIcon: tabIcons[route.name],
       })}>
