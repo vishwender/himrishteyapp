@@ -113,7 +113,7 @@ export default function LoginScreen({navigation}) {
         {/* Branding */}
         <View style={styles.hero}>
           <Text style={styles.brand}>
-            Him<Text style={styles.brandAccent}>Rishtey</Text>
+            Him<Text style={styles.brandAccent}>Shaadi</Text>
           </Text>
 
           <Text style={styles.brandSubtitle}>
@@ -251,7 +251,7 @@ export default function LoginScreen({navigation}) {
 
           <View style={styles.registerRow}>
             <Text style={styles.registerLabel}>
-              New to HimRishtey?{' '}
+              New to HimShaadi?{' '}
             </Text>
 
             <TouchableOpacity

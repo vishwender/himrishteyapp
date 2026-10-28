@@ -287,14 +287,6 @@ export default function AccountScreen() {
 
       <View style={styles.menuCard}>
         <AccountItem
-          icon="heart"
-          title="My Shortlist"
-          disabled
-        />
-
-        <View style={styles.divider} />
-
-        <AccountItem
           icon="crown"
           title="Membership"
           subtitle="View membership plans"
@@ -368,7 +360,7 @@ export default function AccountScreen() {
       </View>
 
       <Text style={styles.footerText}>
-        HimRishtey
+        HimShaadi
       </Text>
     </ScrollView>
   );

@@ -122,7 +122,7 @@ export default function MembershipWalletScreen() {
 
         Alert.alert(
             'Request a Callback',
-            'Would you like the HimRishtey team to contact you about membership plans?',
+            'Would you like the HimShaadi team to contact you about membership plans?',
             [
                 { text: 'Cancel', style: 'cancel' },
                 {
@@ -195,7 +195,7 @@ export default function MembershipWalletScreen() {
                 <Text style={styles.sectionTitle}>Membership Plans</Text>
 
                 <Text style={styles.helper}>
-                    Explore the membership options available for HimRishtey.
+                    Explore the membership options available for HimShaadi.
                 </Text>
 
                 {loading ? (

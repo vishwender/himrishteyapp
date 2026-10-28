@@ -7,6 +7,7 @@ import {
     ScrollView,
     TouchableOpacity,
     ActivityIndicator,
+    Alert,
     RefreshControl,
     StyleSheet,
 } from 'react-native';
@@ -137,7 +138,7 @@ export default function MembershipScreen() {
             <Text style={styles.title}>Membership Plans</Text>
 
             <Text style={styles.subtitle}>
-                Explore available HimRishtey membership plans
+                Explore available HimShaadi membership plans
                 and their benefits.
             </Text>
 
@@ -266,6 +267,16 @@ export default function MembershipScreen() {
                                                                 {plan.view_profile}
                                                             </Text>
                                                         </View>
+                                                        <TouchableOpacity
+                                                            accessibilityRole="button"
+                                                            accessibilityLabel={`Buy ${plan.plan_name}`}
+                                                            style={styles.buyButton}
+                                                            onPress={() => Alert.alert(
+                                                                'Buy Membership',
+                                                                `You selected ${plan.plan_name}. Online purchasing is not available yet.`,
+                                                            )}>
+                                                            <Text style={styles.buyButtonText}>Buy</Text>
+                                                        </TouchableOpacity>
                                                     </View>
                                                 ))
                                             )}
@@ -289,6 +300,19 @@ export default function MembershipScreen() {
 }
 
 const styles = StyleSheet.create({
+    buyButton: {
+        backgroundColor: colors.primary,
+        borderRadius: 11,
+        paddingVertical: 14,
+        minHeight: 48,
+        alignItems: 'center',
+        marginTop: 16,
+    },
+    buyButtonText: {
+        color: '#FFFFFF',
+        fontSize: 14,
+        fontWeight: '800',
+    },
     container: {
         flex: 1,
         backgroundColor: '#FAF9FF',

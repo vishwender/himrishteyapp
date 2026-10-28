@@ -259,7 +259,7 @@ export default function RegisterScreen({ navigation }) {
       <SafeAreaView edges={['bottom']} style={styles.root}>
         <View style={styles.card}>
           <Text accessibilityRole="header" style={styles.title}>
-            Welcome to HimRishtey
+            Welcome to HimShaadi
           </Text>
           <Text style={styles.description}>Your registration is complete.</Text>
           {profileId ? (
@@ -294,7 +294,7 @@ export default function RegisterScreen({ navigation }) {
           keyboardShouldPersistTaps="handled"
           contentContainerStyle={styles.content}
         >
-          <Text style={styles.brand}>HimRishtey</Text>
+          <Text style={styles.brand}>HimShaadi</Text>
           <Text style={styles.description}>
             A beautiful beginning starts with you.
           </Text>

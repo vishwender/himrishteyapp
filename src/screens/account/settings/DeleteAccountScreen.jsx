@@ -26,7 +26,7 @@ const REASONS = [
     'Found a partner',
     'Not satisfied with the service',
     'Privacy concerns',
-    'Not using HimRishtey anymore',
+    'Not using HimShaadi anymore',
     'Other',
 ];
 
@@ -207,7 +207,7 @@ export default function DeleteAccountScreen() {
             <Text style={styles.title}>Delete Account</Text>
 
             <Text style={styles.subtitle}>
-                Request deletion of your HimRishtey account.
+                Request deletion of your HimShaadi account.
             </Text>
 
             {pendingRequest ? (

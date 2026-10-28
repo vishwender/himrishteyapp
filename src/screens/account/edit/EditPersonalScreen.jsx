@@ -4,6 +4,7 @@ import {
     heightValue,
 } from '../../../constants/profileOptions';
 import SelectField from '../../../components/SelectField';
+import DateTimeField from '../../../components/DateTimeField';
 
 import React, { useEffect, useMemo, useState } from 'react';
 
@@ -42,8 +43,13 @@ function formatExistingBirthDate(value) {
         return '';
     }
 
-    if (/^\d{4}-\d{2}-\d{2} (0[1-9]|1[0-2]):[0-5]\d (AM|PM)$/i.test(text)) {
-        return text;
+    const legacyTime = text.match(
+        /^(\d{4}-\d{2}-\d{2}) (0[1-9]|1[0-2]):([0-5]\d)(?::\d{2})? (AM|PM)$/i,
+    );
+    if (legacyTime) {
+        return `${legacyTime[1]} ${legacyTime[2]}:${
+            legacyTime[3]
+        } ${legacyTime[4].toUpperCase()}`;
     }
 
     const match = text.match(
@@ -124,6 +130,7 @@ function Field({
             <Text style={styles.label}>{label}</Text>
 
             <TextInput
+                accessibilityLabel={label}
                 value={value}
                 onChangeText={onChangeText}
                 editable={editable}
@@ -216,11 +223,30 @@ export default function EditPersonalScreen() {
         setForm(initial);
     }, [initial]);
 
+    const childrenEditable = ['Divorced', 'Widowed', 'Separated'].includes(
+        form.marital_status,
+    );
+    const birthDate = form.birth_date_time.split(' ')[0];
+    const birthTime = form.birth_date_time.split(' ').slice(1).join(' ');
+
     const update = (key, value) => {
-        setForm(previous => ({
-            ...previous,
-            [key]: value,
-        }));
+        setForm(previous => {
+            if (
+                key === 'no_of_child' &&
+                !['Divorced', 'Widowed', 'Separated'].includes(
+                    previous.marital_status,
+                )
+            ) {
+                return previous;
+            }
+            return {
+                ...previous,
+                [key]: value,
+                ...(key === 'marital_status' && value === 'Never Married'
+                    ? { no_of_child: '0' }
+                    : {}),
+            };
+        });
     };
 
     const handleSave = async () => {
@@ -241,6 +267,13 @@ export default function EditPersonalScreen() {
             }
         });
 
+        if (
+            form.marital_status === 'Never Married' &&
+            initial.no_of_child !== '0'
+        ) {
+            changed.no_of_child = 0;
+        }
+
         if (Object.keys(changed).length === 0) {
             Alert.alert('No Changes', 'You have not changed any details.');
             return;
@@ -250,7 +283,7 @@ export default function EditPersonalScreen() {
             if (!validBirthDate(changed.birth_date_time)) {
                 Alert.alert(
                     'Invalid Date',
-                    'Use YYYY-MM-DD hh:mm AM/PM, for example 1996-05-20 08:30 AM.',
+                    'Select both your date of birth and birth time.',
                 );
                 return;
             }
@@ -326,13 +359,30 @@ export default function EditPersonalScreen() {
                     hint="Gender changes are not available in this form."
                 />
 
-                <Field
-                    label="Date & Time of Birth"
-                    value={form.birth_date_time}
-                    onChangeText={value => update('birth_date_time', value)}
-                    placeholder="1996-05-20 08:30 AM"
-                    hint="Format: YYYY-MM-DD hh:mm AM/PM"
-                />
+                <View style={styles.field}>
+                    <Text style={styles.label}>Date of Birth</Text>
+                    <DateTimeField
+                        label="Date of Birth"
+                        mode="date"
+                        value={birthDate}
+                        disabled={saving}
+                        onChange={value =>
+                            update('birth_date_time', `${value} ${birthTime}`)
+                        }
+                    />
+                </View>
+                <View style={styles.field}>
+                    <Text style={styles.label}>Birth Time</Text>
+                    <DateTimeField
+                        label="Birth Time"
+                        mode="time"
+                        value={birthTime}
+                        disabled={saving}
+                        onChange={value =>
+                            update('birth_date_time', `${birthDate} ${value}`)
+                        }
+                    />
+                </View>
 
                 <Field
                     label="Place of Birth"
@@ -368,7 +418,17 @@ export default function EditPersonalScreen() {
 
                 <Field
                     label="Number of Children"
-                    value={form.no_of_child}
+                    value={
+                        form.marital_status === 'Never Married'
+                            ? '0'
+                            : form.no_of_child
+                    }
+                    editable={!saving && childrenEditable}
+                    hint={
+                        !childrenEditable
+                            ? 'Editable only for Divorced, Widowed or Separated.'
+                            : undefined
+                    }
                     keyboardType="number-pad"
                     onChangeText={value => update('no_of_child', value)}
                     placeholder="0"

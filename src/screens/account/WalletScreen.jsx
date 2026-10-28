@@ -1,4 +1,5 @@
 import AppIcon from '../../components/AppIcon';
+import WalletAmountModal from '../../components/WalletAmountModal';
 
 import React, { useCallback, useState } from 'react';
 
@@ -7,6 +8,8 @@ import {
     Text,
     FlatList,
     ActivityIndicator,
+    TouchableOpacity,
+    Alert,
     RefreshControl,
     StyleSheet,
 } from 'react-native';
@@ -43,6 +46,7 @@ function getErrorMessage(error) {
 }
 
 export default function WalletScreen() {
+    const [amountModalVisible, setAmountModalVisible] = useState(false);
     const [wallet, setWallet] = useState(null);
     const [transactions, setTransactions] = useState([]);
     const [offers, setOffers] = useState([]);
@@ -201,6 +205,15 @@ export default function WalletScreen() {
                 <Text style={styles.currency}>
                     {wallet?.currency || 'INR'}
                 </Text>
+
+                <TouchableOpacity
+                    accessibilityRole="button"
+                    accessibilityLabel="Add Money"
+                    style={styles.addMoneyButton}
+                    onPress={() => setAmountModalVisible(true)}>
+                    <AppIcon name="plus" size={18} color={colors.primary} />
+                    <Text style={styles.addMoneyText}>Add Money</Text>
+                </TouchableOpacity>
             </View>
             <View style={styles.offersSection}>
                 <Text style={styles.sectionTitle}>
@@ -300,6 +313,16 @@ export default function WalletScreen() {
                                         </Text>
                                     </View>
                                 </View>
+                                <TouchableOpacity
+                                    accessibilityRole="button"
+                                    accessibilityLabel={`Buy ${title}`}
+                                    style={styles.offerBuyButton}
+                                    onPress={() => Alert.alert(
+                                        'Buy Wallet Offer',
+                                        `You selected ${title}. Purchasing wallet offers is not available in the app yet.`,
+                                    )}>
+                                    <Text style={styles.offerBuyText}>Buy</Text>
+                                </TouchableOpacity>
                             </View>
                         );
                     })
@@ -325,6 +348,10 @@ export default function WalletScreen() {
 
     return (
         <View style={styles.container}>
+            <WalletAmountModal
+                visible={amountModalVisible}
+                onClose={() => setAmountModalVisible(false)}
+            />
             {loading ? (
                 <View style={styles.loadingBox}>
                     <ActivityIndicator
@@ -402,6 +429,36 @@ const styles = StyleSheet.create({
         borderRadius: 18,
         padding: 22,
         marginBottom: 25,
+    },
+    offerBuyButton: {
+        backgroundColor: colors.primary,
+        borderRadius: 11,
+        minHeight: 48,
+        paddingVertical: 14,
+        alignItems: 'center',
+        marginTop: 16,
+    },
+    offerBuyText: {
+        color: '#FFFFFF',
+        fontSize: 14,
+        fontWeight: '800',
+    },
+    addMoneyButton: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        gap: 8,
+        backgroundColor: '#FFFFFF',
+        borderRadius: 11,
+        minHeight: 48,
+        paddingVertical: 14,
+        paddingHorizontal: 20,
+        alignItems: 'center',
+        marginTop: 20,
+    },
+    addMoneyText: {
+        color: colors.primary,
+        fontSize: 14,
+        fontWeight: '800',
     },
     balanceLabel: {
         fontSize: 13,

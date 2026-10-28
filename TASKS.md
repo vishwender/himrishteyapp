@@ -1,5 +1,99 @@
 # HimRishtey task checklist
 
+### T4.1 shortlist profile card layout — 2026-10-27
+
+- Shortlisted Profiles now uses the same Interests-style photo/initials card as viewers and likes: name, profile ID, location and Shortlisted profile caption. Existing profile navigation and pagination retained.
+- ActivitiesScreen suite PASS, 7 tests, including shortlist details/initials/navigation; targeted ESLint and `git diff --check` PASS. No API/database changes. Device visual check not run.
+
+### T4.1 Likes activity lists — 2026-10-27
+
+- Added Activities → Likes → Liked Profiles / Who Liked My Profile. Both open paginated themed photo/profile cards matching Interests with name, profile ID, location and direction caption; existing loading/empty/retry/refresh/profile navigation retained.
+- With approved out-of-workspace source edit, local Laravel DiscoverProfilesController GET /discover/profiles now accepts section=liked_profiles or liked_you. Uses existing profile_like table with status=1 and authenticated owner: outgoing user_id → like_profile_id, incoming like_profile_id → user_id. Retains existing eligible-member filtering, event grouping, cursor context/expiry/snapshot and pagination. No new routes, tables, migrations or database writes.
+- Contract remains existing Bearer-auth GET with section/per_page/cursor parameters; response data.profiles uses existing member cards, data.next_cursor uses existing adapter; invalid sections/cursors retain validation errors. No like mutation is added to the app by this task.
+- Activity/API Jest PASS, 2 suites / 8 tests covering Likes menu, both sections/captions, navigation, pagination/retry and counts. Targeted ESLint, Laravel PHP syntax, and app diff check PASS. No live authenticated/DB integration tests or device smoke performed. Backend source update is local and needs deployment with the app for remote environments.
+
+### T5.1 Activities menu cleanup — 2026-10-27
+
+- Removed Accepted Connections row from My Activity. Accepted tabs remain in Interests Sent and Received.
+- ActivitiesScreen tests (3) and targeted ESLint PASS; no API or database changes. Device visual check not repeated.
+
+### T5.1 sent interest status tabs — 2026-10-27
+
+- Interests Sent now has Accepted, Rejected and Pending tabs matching Interests Received; Pending is selected on entry/focus. Each tab filters only sent requests by server status 1/2/0, preserving cancellation of pending sent requests. Received statuses and combined Accepted Connections behavior retained.
+- InterestsScreen/ActivitiesScreen Jest suites PASS, 2 suites / 8 tests, including sent default, each status, received exclusion and refreshed new pending requests. Targeted ESLint and `git diff --check` PASS. No database/API changes; device check not run.
+
+### T5.1 received interest status tabs — 2026-10-27
+
+- Activities → Interests Received now shows Accepted, Rejected and Pending tabs using existing app theme. Pending is selected on entry/focus; received status 0 maps to Pending, 1 to Accepted, 2 to Rejected. Sent interests are excluded from all three received lists. Existing accept/reject updates automatically move requests out of Pending; refresh loads new requests.
+- Targeted ESLint and `git diff --check` PASS. InterestsScreen/ActivitiesScreen Jest suites PASS, 2 suites / 7 tests, including Pending default, numeric/string statuses, received-only filtering, all three tabs and newly refreshed requests. No database/API changes or live mutations; device smoke not run.
+
+### T4.1 viewer profile cards match Interests — 2026-10-27
+
+- Who Viewed My Profile now uses Interests card styling: 72×82 photo/initials, name, profile ID, location and Viewed your profile caption. Matching spacing, border, rounded corners and theme; tap still opens Member Profile. Shortlist layout unchanged, viewer pagination/retry preserved.
+- Targeted ESLint, ActivitiesScreen tests (3 PASS) and `git diff --check`: PASS. Device visual check not run. No API or database changes.
+
+### T4.1 / T5.1 Activities footer and overview — 2026-10-27
+
+- Replaced Interests footer tab with Activities, opening themed My Activity overview matching supplied five-row layout: profile viewers, received interests, sent interests, shortlist and accepted connections. Each row has themed icon, subtitle, actual count and chevron; safe areas/font scaling/footer space retained.
+- Added nested activity navigation. Interest rows select existing received/sent/accepted list; viewer/shortlist rows open paginated discovery lists with profile navigation, empty/loading/error/retry/pull-refresh. Returning to overview refreshes counts; stale responses after blur are ignored.
+- Read-only Laravel contracts inspected: GET /dashboard/stats returns profile_views; GET /shortlisted returns count; GET /interests/sent and /received return complete interests arrays; accepted count deduplicates accepted interest IDs; GET /discover/profiles supports viewed_you/shortlisted and existing cursor adapter. Partial failures retain successful counts and show unavailable/retry rather than fake zero. No backend edits or DB changes/live mutations.
+- `npm test -- --runInBand tests/ActivitiesScreen.test.jsx tests/activityApi.test.js __tests__/InterestsScreen.test.jsx`: PASS, 3 suites / 8 tests (five destinations, real/zero/missing counts, accepted deduplication, retry, paginated profiles and selected interest route). Added missing bottom-tab-height mock to existing Interests test to resolve its navigation ESM test-import blocker.
+- Targeted ESLint and `git diff --check`: PASS. Native build/device visual and live authenticated API checks not run; API tests are mocked.
+
+### T6.2 wallet amount entry modal — 2026-10-27
+
+- + Add Money opens themed keyboard-aware modal with editable Enter amount input and ₹100/₹200/₹500/₹1,000 presets. Selecting a preset fills input; Close and Android Back dismiss; reopening starts blank. No payment submission or database changes.
+- WalletAmountModal Jest test PASS: all presets, manual entry, back dismissal and reset. Component/test ESLint, WalletScreen Babel and `git diff --check` PASS. Existing wallet duplicate style lint errors remain; device smoke not run.
+
+### T6.2 wallet offer Buy buttons — 2026-10-27
+
+- Added accessible app-themed Buy button on each wallet offer. Tap identifies the selected offer and explains purchasing is not available in the app yet; no payment/credit request or database change.
+- Babel transform and `git diff --check`: PASS. Device visual/tap check not run. Existing WalletScreen duplicate style lint errors remain as recorded above.
+
+### T6.2 wallet Add Money button — 2026-10-27
+
+- Added accessible themed Add Money button inside My Wallet Available Balance card. Tap explicitly states top-up is not available in the app yet; no funds or requests are submitted.
+- Read-only route inspection confirms Laravel order/verify endpoints exist; no payment checkout is integrated in the app. Payment implementation/verification remains pending under T6.2/T6.3.
+- Babel transform and `git diff --check`: PASS. Targeted WalletScreen ESLint remains blocked by four existing duplicate style keys (offersSection, offerCard, offerTitle, offerDescription); no new lint errors. Device visual/tap check not run. No API/database changes.
+
+### T6.1 membership plan Buy buttons — 2026-10-27
+
+- Added an accessible, app-themed Buy button to each expanded plan card in the active MembershipScreen. Tap identifies the selected plan and explicitly explains that online purchasing is not available yet.
+- Read-only inspection found no purchase/checkout API route or app flow; T6.2/T6.3 remain pending. Buttons do not charge, activate membership or submit callback requests.
+- Targeted ESLint, Babel transform and `git diff --check`: PASS. Device visual/tap check not run. No API or database changes.
+
+### T3.2 personal birth selectors and children rule — 2026-10-27
+
+- Edit Personal Details now uses existing themed DateTimeField date and birth-time pickers, preserving the combined birth_date_time API contract. Existing 12-hour timestamps with seconds retain AM/PM; incomplete date/time changes are blocked before submission.
+- Never Married displays and submits zero children; the field is editable only for Divorced, Widowed or Separated. Selecting Never Married resets the count. Existing inconsistent counts are corrected only on explicit Save.
+- `npm test -- --runInBand tests/editProfileForms.test.jsx tests/DateTimeField.test.jsx`: PASS, 2 suites / 24 tests. Includes combined date/time payload, legacy PM preservation, locked count and all three editable statuses/reset behavior. Targeted ESLint and `git diff --check`: PASS.
+- No backend or database changes, live API mutations or migrations. Native build/device smoke not run for this JS-only update; tests use mocked API calls.
+
+### T1.1 profile dropdown navigation arrows — 2026-10-27
+
+- Added trailing next icons to My Profile and Settings rows, matching Wallet's 18-point themed arrow. Navigation/layout behavior preserved.
+- Targeted DiscoverHeader ESLint and `git diff --check`: PASS. No database/API changes; device visual check not repeated.
+
+### T1.1 / T6.2 header dropdown wallet balance — 2026-10-27
+
+- Removed Membership navigation option from header dropdown, retaining assigned-plan/status summary. Added themed Wallet balance row below plan details; tap closes menu and navigates to existing parent Wallet screen.
+- Loads actual GET /wallet balance on menu open with loading/unavailable/retry states. Zero is displayed only when returned by server. Optional abort signal added to existing getWallet adapter; closed/unmounted/menu-account changes abort and ignore stale results. Response member ID must match current member before balance display; no balance copied between accounts.
+- `npm test -- --runInBand tests/DiscoverHeader.test.jsx tests/walletHeaderApi.test.js`: PASS, 2 suites / 7 tests. Covers menu removal, balance/navigation, failed/retry, valid zero, late result after close, different-member response rejection and adapter cancellation/no-argument compatibility.
+- Targeted ESLint, Babel transform and `git diff --check`: PASS. Existing Laravel wallet route inspected read-only (returns balance and INR; no record creation on GET). No backend changes, database/schema/data writes or live mutations; verification uses mocked wallet responses. Device dropdown/Wallet navigation smoke NOT RUN.
+
+### T1.1 / T2.2 header profile menu membership/status — 2026-10-27
+
+- Added themed membership-plan summary and Active/Inactive badge beneath identity in Discover header dropdown. Uses normalized authenticated member fields; active Yes/No shown explicitly, missing fields show unavailable, plan_id 0 shows No plan. Assigned plan name is independent of activation and does not grant entitlement.
+- Dropdown refreshes session details on open, guards stale local updates on close/unmount and offers retry after refresh failure while retaining cached details. Menu scrolls within available safe-area height so actions remain reachable at larger font sizes. Existing My Profile/Membership/Settings/logout routes preserved.
+- With approved out-of-workspace source edit, Laravel ProfileController member serializer now returns plan_id and plan_name by read-only lookup in existing membership_plans table; no lookup for no/missing plan ID. Existing session/profile adapter already retains these fields. No database schema/data changes, new routes or permission changes.
+- `npm test -- --runInBand tests/DiscoverHeader.test.jsx __tests__/profileApi.test.js __tests__/sessionMember.test.js`: PASS, 3 suites / 19 tests. Header tests verify menu-only refresh, paid/active, no-plan/inactive, unknown values and retry/navigation. `php tests/laravel/profile-plan-serializer.php`: PASS, 4 actual serializer cases with fully mocked connections (no DB access).
+- Targeted ESLint/Babel, PHP syntax and both scoped diff checks: PASS. Live membership/status/device visual acceptance NOT RUN; no database commands or live mutations. Backend source change is local/DDEV only, requires normal deployment for production API.
+
+### T3.1 Account Membership menu cleanup — 2026-10-27
+
+- Removed disabled My Shortlist entry and its divider from the Membership section on My Account. Membership and Wallet navigation preserved.
+- Targeted AccountScreen ESLint and `git diff --check`: PASS. No database/API changes; device visual check not repeated.
+
 ### T3.2 remove obsolete height review blocker — 2026-10-27
 
 - Removed the earlier review-required save guard/message after user restricted selector to .0–.9. Current choices serialize to existing numeric API format (5.9, then 6); 10/11-inch values cannot be newly submitted. No backend/schema changes needed for this restricted format; review SQL/controller artifacts remain unapplied.
@@ -453,3 +547,15 @@ Snapshot: 2026-10-16. `[x]` means the stated activity has evidence; `[ ]` means 
 
 - Corrected the line below location in InterestsScreen: status 1 shows "Interest accepted", status 2 "Interest rejected"; pending retains "Interest sent" / "Interest received" according to direction. Unknown statuses no longer claim sent/received. This applies across all tabs without changing API actions.
 - Targeted `npx eslint src/screens/interests/InterestsScreen.jsx` and existing InterestsScreen regression suite run for this presentation change; device visual check not repeated.
+
+### T1.3 app display name — 2026-10-28
+
+- Updated Android/iOS display names, iOS launch-screen text and active in-app branding to HimShaadi. Preserved native module/package identifiers, API app code and credential storage service. Acceptance: visible app name is HimShaadi after rebuild.
+- Targeted ESLint for all seven changed JSX files: PASS. Python JSON/plist/XML parsing and Android/iOS display-name assertions: PASS.
+- Native rebuild and device smoke NOT RUN for this text-only change; installed apps require a rebuild to show the launcher-name update.
+
+### T1.3 HimShaadi launcher icon — 2026-10-28
+
+- Created wedding-knot artwork from the user reference using built-in image generation; source and exact prompt saved in assets/branding. Added Android density PNGs and adaptive launcher resources, plus all existing iOS AppIcon slots. Acceptance: reference-inspired red/ivory/gold icon is packaged as the launcher icon.
+- PNG dimensions/opaque iOS formats and adaptive XML validation: PASS. Scoped git diff --check: PASS. npm run android -- --no-packager: PASS, BUILD SUCCESSFUL, installed and launched on connected ONEPLUS A5000 (Android 10). APK aapt badging confirms HimShaadi label and adaptive launcher icon.
+- iOS build and on-device launcher visual inspection NOT RUN. Existing Android Gradle deprecation warnings remain.

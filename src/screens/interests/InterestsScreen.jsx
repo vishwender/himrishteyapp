@@ -2,6 +2,7 @@
 import {useBottomTabBarHeight} from '@react-navigation/bottom-tabs';
 import React, {
   useCallback,
+  useEffect,
   useMemo,
   useRef,
   useState,
@@ -34,6 +35,12 @@ import {
 import { notifyInterestChanged } from '../../services/interestSync';
 import { getProfileImage } from '../../config/images';
 import colors from '../../theme/colors';
+
+const STATUS_TABS = [
+  {key: '1', title: 'Accepted'},
+  {key: '2', title: 'Rejected'},
+  {key: '0', title: 'Pending'},
+];
 
 const TABS = [
   { key: 'received', title: 'Received' },
@@ -214,12 +221,23 @@ function InterestCard({
   );
 }
 
-export default function InterestsScreen() {
+export default function InterestsScreen({route}) {
+  const receivedMode = route?.params?.tab === 'received';
+  const sentMode = route?.params?.tab === 'sent';
+  const statusMode = receivedMode || sentMode;
+  const statusScope = statusMode ? route.params.tab : null;
+  const [requestStatus, setRequestStatus] = useState('0');
   const bottomBarHeight = useBottomTabBarHeight();
   const navigation = useNavigation();
 
   const [selectedTab, setSelectedTab] =
     useState('received');
+
+  useEffect(() => {
+    if (TABS.some(tab => tab.key === route?.params?.tab)) {
+      setSelectedTab(route.params.tab);
+    }
+  }, [route?.params?.tab]);
 
   const [sent, setSent] = useState([]);
   const [received, setReceived] = useState([]);
@@ -280,14 +298,18 @@ export default function InterestsScreen() {
   // Switching tabs does not trigger a new request.
   useFocusEffect(
     useCallback(() => {
+      if (statusScope) setRequestStatus('0');
       loadData();
       return () => {
         requestRef.current += 1;
       };
-    }, [loadData]),
+    }, [loadData, statusScope]),
   );
 
   const filteredInterests = useMemo(() => {
+    if (statusMode) {
+      return (receivedMode ? received : sent).filter(item => String(item.status) === requestStatus);
+    }
     if (selectedTab === 'sent') {
       return sent;
     }
@@ -301,7 +323,7 @@ export default function InterestsScreen() {
     return [...received, ...sent]
       .filter(item => String(item.status) === status)
       .sort((a, b) => Number(b.id) - Number(a.id));
-  }, [selectedTab, sent, received]);
+  }, [selectedTab, sent, received, receivedMode, statusMode, requestStatus]);
 
   const openProfile = useCallback(
     profileId => {
@@ -428,25 +450,27 @@ export default function InterestsScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>My Interests</Text>
+        <Text style={styles.title}>{receivedMode ? 'Interests Received' : sentMode ? 'Interests Sent' : 'My Interests'}</Text>
         <Text style={styles.subtitle}>
           Manage your connections and requests
         </Text>
       </View>
 
       <View style={styles.tabRow}>
-        {TABS.map(tab => (
+        {(statusMode ? STATUS_TABS : TABS).map(tab => (
           <TouchableOpacity
             key={tab.key}
             style={[
               styles.tab,
-              selectedTab === tab.key && styles.selectedTab,
+              (statusMode ? requestStatus : selectedTab) === tab.key && styles.selectedTab,
             ]}
-            onPress={() => setSelectedTab(tab.key)}>
+            accessibilityRole="tab"
+            accessibilityState={{selected: (statusMode ? requestStatus : selectedTab) === tab.key}}
+            onPress={() => statusMode ? setRequestStatus(tab.key) : setSelectedTab(tab.key)}>
             <Text
               style={[
                 styles.tabText,
-                selectedTab === tab.key &&
+                (statusMode ? requestStatus : selectedTab) === tab.key &&
                 styles.selectedTabText,
               ]}>
               {tab.title}
@@ -501,7 +525,7 @@ export default function InterestsScreen() {
             !error ? (
               <View style={styles.emptyState}>
                 <Text style={styles.emptyTitle}>
-                  No {selectedTab} interests
+                  No {statusMode ? STATUS_TABS.find(tab => tab.key === requestStatus)?.title.toLowerCase() : selectedTab} interests
                 </Text>
 
                 <Text style={styles.muted}>

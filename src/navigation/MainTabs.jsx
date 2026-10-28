@@ -4,7 +4,7 @@ import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 
 import HomeScreen from '../screens/home/HomeScreen';
 import SearchScreen from '../screens/search/SearchScreen';
-import InterestsScreen from '../screens/interests/InterestsScreen';
+import ActivitiesNavigator from './ActivitiesNavigator';
 import AccountScreen from '../screens/account/AccountScreen';
 
 const Tab = createBottomTabNavigator();
@@ -12,7 +12,7 @@ const Tab = createBottomTabNavigator();
 const icons = {
   Discover: 'home',
   Search: 'search',
-  Interests: 'heart',
+  Activities: 'recent',
   Account: 'user',
 };
 
@@ -42,7 +42,7 @@ export default function MainTabs() {
       })}>
       <Tab.Screen name="Discover" component={HomeScreen} />
       <Tab.Screen name="Search" component={SearchScreen} />
-      <Tab.Screen name="Interests" component={InterestsScreen} />
+      <Tab.Screen name="Activities" component={ActivitiesNavigator} />
       <Tab.Screen name="Account" component={AccountScreen} />
     </Tab.Navigator>
   );

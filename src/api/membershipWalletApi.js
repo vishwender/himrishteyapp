@@ -2,7 +2,7 @@
 import api from './client';
 import {getSessionToken} from '../services/authStorage';
 
-async function request(method, url, data) {
+async function request(method, url, data, signal) {
   const token = await getSessionToken();
 
   if (!token) {
@@ -12,6 +12,7 @@ async function request(method, url, data) {
   const response = await api.request({
     method,
     url,
+    ...(signal ? {signal} : {}),
     ...(data !== undefined ? {data} : {}),
     headers: {
       Authorization: `Bearer ${token}`,
@@ -43,8 +44,8 @@ export function requestMembershipCallback() {
   return request('post', '/memberships/callback-request');
 }
 
-export function getWallet() {
-  return request('get', '/wallet');
+export function getWallet(signal) {
+  return request('get', '/wallet', undefined, signal);
 }
 
 export function getWalletTransactions() {
