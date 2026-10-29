@@ -2,7 +2,6 @@ import React, { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
-  Linking,
   Image,
   KeyboardAvoidingView,
   Platform,
@@ -17,7 +16,6 @@ import { usePreventRemove } from '@react-navigation/native';
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import colors from '../../theme/colors';
-import { API_CONFIG } from '../../config/api';
 import SelectField from '../../components/SelectField';
 import DateTimeField from '../../components/DateTimeField';
 import { getAuthError } from '../../api/authApi';
@@ -98,15 +96,7 @@ export default function RegisterScreen({ navigation }) {
     scroll.current?.scrollTo({ y: 0, animated: false });
   };
 
-  const openTerms = async () => {
-    try {
-      const website = API_CONFIG.baseURL.replace(/\/api\/v1\/?$/, '');
-      await Linking.openURL(`${website}/terms-and-conditions`);
-    } catch {
-      if (alive.current)
-        setError('Unable to open Terms and Conditions. Please try again.');
-    }
-  };
+  const openTerms = () => navigation.navigate('Information', {page: 'terms'});
 
   const choosePhoto = () => {
     if (lock.current || pickerLock.current) return;

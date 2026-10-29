@@ -407,6 +407,7 @@ export default function MemberProfileScreen({ route, navigation }) {
           <View style={styles.summaryCard}>
             <Text style={styles.memberName}>{display(member.full_name) || 'Member'}{age !== null ? `, ${age}` : ''}</Text>
             <Text style={styles.location}>{location ? `${location}` : 'Location not specified'}</Text>
+
             <View style={styles.statsRow}>
               <StatPill icon="height" label="Height" value={member.height} />
               <StatPill icon="education" label="Education" value={member.education} />
@@ -575,6 +576,14 @@ export default function MemberProfileScreen({ route, navigation }) {
 
           {interestError ? <View style={styles.errorBox}><Text style={styles.errorText}>{interestError}</Text><TouchableOpacity onPress={retryInterest} disabled={interestLoading}><Text style={styles.retry}>Retry Interest Status</Text></TouchableOpacity></View> : null}
           {shortlistError ? <View style={styles.errorBox}><Text style={styles.errorText}>{shortlistError}</Text><TouchableOpacity onPress={retryShortlist} disabled={shortlistLoading}><Text style={styles.retry}>Retry Shortlist Status</Text></TouchableOpacity></View> : null}
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityLabel="Report Profile"
+              style={styles.reportButton}
+              onPress={() => navigation.navigate('ReportProfile', {profileId: member.profile_id})}>
+              <AppIcon name="flag" size={17} color={colors.error} />
+              <Text style={styles.reportText}>Report Profile</Text>
+            </TouchableOpacity>
         </View>
       </ScrollView>
 
@@ -617,6 +626,8 @@ export default function MemberProfileScreen({ route, navigation }) {
 }
 
 const styles = StyleSheet.create({
+  reportButton: {flexDirection: 'row', alignItems: 'center', gap: 7, minHeight: 44, alignSelf: 'flex-start'},
+  reportText: {fontSize: 13, fontWeight: '600', color: colors.error},
   screen: { flex: 1, backgroundColor: colors.background },
   scroll: { flex: 1 },
   scrollContent: { paddingBottom: 24 },

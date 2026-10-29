@@ -260,6 +260,14 @@ export default function AccountScreen() {
         />
 
         <View style={styles.divider} />
+        <AccountItem
+          icon="verified"
+          title="Profile Verification"
+          subtitle="Verify your registered mobile number"
+          onPress={() => navigation.navigate('ProfileVerification')}
+        />
+
+        <View style={styles.divider} />
 
         <AccountItem
           icon="camera"
@@ -313,8 +321,11 @@ export default function AccountScreen() {
         <AccountItem
           icon="settings"
           title="Settings & Privacy"
-          disabled
+          subtitle="About HimShaadi, privacy policy and terms"
+          onPress={() => navigation.navigate('SettingsPrivacy')}
         />
+
+        <View style={styles.divider} />
 
         <AccountItem
           icon="eye"
@@ -324,6 +335,8 @@ export default function AccountScreen() {
             navigation.getParent()?.navigate('ProfileVisibility')
           }
         />
+
+        <View style={styles.divider} />
 
         <AccountItem
           icon="delete"

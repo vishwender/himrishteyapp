@@ -1,5 +1,85 @@
 # HimRishtey task checklist
 
+### T1.3 Report Profile placement — 2026-10-29
+
+- Moved existing Report Profile flag from summary to end of scrollable member profile, after details/status messages and above the fixed action bar. Navigation unchanged. Targeted MemberProfileScreen ESLint and git diff --check: PASS. No native/device checks repeated for placement-only change.
+
+### T5.1 / T1.3 Member Profile report flag — 2026-10-29
+
+- Android `./gradlew :app:assembleDebug -PreactNativeArchitectures=arm64-v8a`: PASS, BUILD SUCCESSFUL; existing Gradle deprecation warnings remain.
+
+- Added outlined Report Profile flag under member name/location. Opens a native-stack form with target profile ID, prefilled editable reporter name/email, reason selection and required details. Explicit submit sends a support concern; success appears only after API confirmation. Duplicate submits blocked, unmount aborts pending request, errors preserve form, ambiguous transport failure does not claim success or automatically retry. No dedicated moderation/blocking status inferred.
+- Inspected actual Laravel ContactMessageController and routes: public application-scoped POST /api/v1/contact-us, X-App-Code, throttle 5/minute; name/email required strings max255 (email validated), optional phone max30 and reporter profile_id max50, required subject max255/message max10000. App uses subject “Report a concern”, reporter profile_id in that field, target profile ID + reason + details in message. Success HTTP201 {success:true,message:"Thank you. Your message has been received."}; Laravel422 validation and429 throttling remain authoritative. Existing support inbox used; no invented report route, backend changes or schema changes.
+- Targeted ESLint PASS (two existing navigator warnings), git diff --check PASS. `npm test -- --runInBand tests/reportProfile.test.jsx`: PASS, four tests covering payload/target isolation, validation/unconfirmed results, duplicate submission, confirmed success and server failure. No live support messages submitted. Full baseline lint/Jest and phone report-flow smoke not repeated; known unrelated Wallet/MyProfile/navigation blockers remain.
+
+### T1.3 Account Settings dividers — 2026-10-29
+
+- Reused existing menu divider between Settings & Privacy / Profile Visibility and Profile Visibility / Delete Account. Targeted AccountScreen ESLint and git diff --check: PASS. Visual-only change; no native build or device check repeated.
+
+### T2.2 Profile Verification status on session restore — 2026-10-29
+
+- User authorized completing verification support. Added member_type from the authenticated member to local Laravel Api/V1/ProfileController::memberData, used by existing GET /api/v1/profile. Additive response example: {success:true,data:{id:1,member_type:"Verified",...}}; existing Bearer/X-App-Code authentication and all other fields unchanged. No routes, database writes or SMS requests. This supersedes the earlier missing verification-field limitation for the local backend.
+- Verified exact one-line backend diff and synchronization into ddev-himrishtey-production-web. Container PHP syntax check: PASS. Backend and app git diff --check: PASS. Targeted ESLint PASS; `npm test -- --runInBand tests/verification.test.jsx __tests__/AuthContext.test.jsx`: PASS, two suites / seven tests, including real profile adapter → reopened verification screen showing verified without OTP request. No device account mutation/live SMS test. Remote production backend not deployed; it needs the same additive response change if the app switches back to production.
+
+### T2.2 / T1.3 Account Profile Verification — 2026-10-29
+
+- Added Account → My Profile → Profile Verification with shield icon and native stack route. Screen supports explicit SMS request, masked destination, four-digit code, retry/new OTP, expiry validation, busy/duplicate-submit protection, cancellation on unmount and server-confirmed success followed by session refresh. Verified session members skip OTP; no OTP/challenge persistence or sensitive logging.
+- Confirmed local routes/api.php, MobileVerificationController and VerifyMobileOtpRequest contract: Bearer + X-App-Code POST /api/v1/profile/mobile-verification/otp/request with {} returns {success:true,data:{challenge_id:"64 characters",expires_in:300,mobile_number:"******1234"}}. POST .../verify with {challenge_id,otp:"1234"} returns {success:true,data:{profile_id,mobile_number,member_type:"Verified"}} and changes member_type server-side. Request 409 means already verified (no SMS); 422 means absent number or invalid/expired challenge/code (attempts_remaining on invalid code); 503 SMS failure; both routes throttle 5/minute and require auth. No pagination. No live POST, SMS, backend edit or account mutation performed by agent.
+- Existing /profile serializer omits member_type. Screen therefore avoids claiming unverified status from missing data, recognizes existing verified sessions and request endpoint 409, and retains confirmed success for the mounted screen. On reopening without server-provided status, the verification prompt can reappear; explicit request safely returns already verified. Persistent verification-status display needs a backend response field in /profile.
+- Targeted ESLint PASS (two pre-existing navigator warnings), git diff --check PASS. `npm test -- --runInBand tests/verification.test.jsx`: PASS, five tests for auth/payload contracts, validation, unconfirmed results, duplicate taps, explicit request, success refresh and existing verification. `./gradlew :app:assembleDebug -PreactNativeArchitectures=arm64-v8a`: PASS. Full lint/Jest baseline not repeated (known Wallet and MyProfile/navigation failures); live phone SMS flow not tested.
+
+### T1.3 age beside activity profile name — 2026-10-29
+
+- Shared ActivityProfileCard displays server-provided positive integer age after name (`Komal, 25`), including its accessible profile label. Missing/invalid age leaves the name alone; no age inferred. Applies to every activity list using the shared card.
+- Targeted ESLint, activity card behavior suite (four tests) and git diff --check: PASS. Native/device checks not repeated for this text formatting change.
+
+### T1.3 My Activity profile icons — 2026-10-29
+
+- Added existing shared outline icons beside profile ID, location and activity description, plus a profile navigation chevron in ActivityProfileCard. Activity icons reflect viewed (eye), liked (heart), shortlisted (bookmark), sent (send), accepted (check) and rejected (close). Labels remain visible with wrapping; icons are decorative. No dependency, API or action changes.
+- Targeted ESLint and git diff --check: PASS. `npm test -- --runInBand tests/activityProfiles.test.jsx`: PASS, four behavior tests. Native build/full baseline and device visual checks not repeated for this icon-only change.
+
+### T1.3 consistent My Activity profile cards — 2026-10-29
+
+- Added shared ActivityProfileCard used by Who Viewed My Profile, Liked Profiles, Who Liked My Profile, Shortlisted Profiles, and all sent/received interest statuses. Consistent photo size, card border/spacing, name, explicit VerifiedBadge, profile ID, location and activity-description order. Long names/locations wrap; missing or failed photos use initials. Missing profile IDs disable profile navigation with accessible state. Interest statuses/dates and existing accept/reject/cancel controls remain below the shared member row; API operations and list loading/pagination unchanged.
+- Acceptance verified by `npm test -- --runInBand tests/activityProfiles.test.jsx`: PASS, four behavior tests covering all list sections/profile navigation, interest status transitions/cancel confirmation without mutation, missing-member fallback/disabled navigation, failed photo fallback and verified/unverified display. Initial test assertion encountered circular React element serialization; corrected test to inspect native Text values, then passed.
+- Targeted ESLint (shared card, both consumers and tests) and git diff --check: PASS. Full lint remains FAIL on four existing Wallet duplicate keys, plus two existing navigator warnings. Full Jest: six suites passed / two failed, 19 tests passed / two failed; failures remain unchanged MyProfileScreen expectations and App.test navigation ESM parsing.
+- `./gradlew :app:assembleDebug -PreactNativeArchitectures=arm64-v8a`: PASS, BUILD SUCCESSFUL. Phone smoke via existing test app/Metro: Who Viewed My Profile renders five shared accessible profile buttons and five viewer descriptions, no load error. Other list visual checks, large-font/narrow-device checks and interest mutation smoke not performed. No account or backend mutations.
+
+### T1.3 Refund & Cancellation policy — 2026-10-29
+
+- Added Refund & Cancellation to Settings & Privacy and About's policy links using the shared information reader (loading, unpublished, retry, cancellation and stale-response handling retained).
+- Existing LegalController contract: public GET /api/v1/refund-cancellation, X-App-Code header, no request body/auth/pagination; success {success:true,data:{id,title,content,updated_at}}, missing page HTTP 404. Read-only local curl: HTTP 200, success=true, published content present. No policy text invented or backend writes.
+- Targeted ESLint and git diff --check: PASS. `npm test -- --runInBand tests/information.test.jsx`: PASS, six tests now include refund route and navigation. Native build/full baseline not repeated for this shared-reader addition; device navigation smoke not run.
+
+### T1.3 Settings & Privacy information menu — 2026-10-29
+
+- Enabled Account → Settings & Privacy and moved About Application, Privacy Policy and Terms of Use into its dedicated screen. Removed their separate Application section from Account. Login and registration policy access retained. Native stack supports returning from policy → Settings & Privacy → Account; safe areas and scalable rows preserved.
+- Targeted ESLint for Account, SettingsPrivacyScreen and AppNavigator: PASS, two existing navigator warnings. `git diff --check`: PASS. JS-only menu move; no native rebuild or authenticated device navigation smoke performed.
+
+### T0.2 / T1.3 use only development app — 2026-10-29
+
+- User explicitly requested uninstalling bundled app and using the test application. `adb -s 21cf0e18 uninstall com.himshaadi` and uninstall of obsolete com.himrishteyapp: Success; their local app data removed. Installed new debug APK as com.himshaadi and launched MainActivity. Package metadata confirms DEBUGGABLE; Metro running on 8081 with USB forwards 8081→8081 and 8080→80. No other unrelated installed apps removed.
+- MainApplication explicitly uses app BuildConfig.DEBUG for React Native development support; library default used ReactBuildConfig.DEBUG and the old test host attempted to load absent bundled assets. Release builds keep development support disabled.
+- Guarded private release-signing property access so debug builds work without credentials. Configured release signing remains unchanged when all four properties exist; any app release task is explicitly blocked otherwise. `:app:assembleRelease` rejected before release tasks with “Release builds require the HIMSHAADI_UPLOAD signing properties.” No release generated or signing key changed. Earlier validateSigningRelease probe found no such task, leading to explicit task-graph verification.
+- Initial debug build failed on stale generated autolinking package com.himrishteyapp. Gradle clean did not invalidate settings-level JSON; removed only android/build/generated/autolinking/autolinking.json and regenerated from current CLI config (com.himshaadi). `./android/gradlew -p android assembleDebug -PreactNativeArchitectures=arm64-v8a`: PASS. Final `./gradlew :app:assembleDebug -PreactNativeArchitectures=arm64-v8a`: PASS, BUILD SUCCESSFUL. Existing native dependency/deprecation warnings remain. `git diff --check`: PASS.
+- Phone smoke: fresh test app renders Login with About / Privacy Policy / Terms of Use links. About opens and displays local Laravel about-us content plus version and policy links. This supersedes the earlier build blocker for information screens; authenticated Account menu smoke still requires login. Play Protect installation prompt required user unlocking; installation then succeeded.
+
+### T1.3 About Application, Privacy Policy and Terms of Use — 2026-10-29
+
+- Added an Application section below Account Settings with three working navigation destinations, plus links on Login and an in-app Terms reader from registration. The shared native information screen shows the application version on About and links to both policies. CMS content renders as selectable text with paragraphs, entities and link destinations retained; no new dependency or invented legal copy.
+- Contract verified in local Laravel routes/api.php and Api/V1/LegalController.php: public GET /api/v1/about-us, /privacy-policy and /terms-and-conditions require X-App-Code via application middleware, no Bearer token, request body or pagination. Success: {success:true,data:{id:1,title:"Privacy Policy",content:"<p>...</p>",updated_at:"2025-08-30 20:41:50"}}. Missing page returns 404 / {success:false,message:"Page content not found."}; null/blank content is unpublished. No API mutations. Read-only curl checks returned success for About and HTTP 200 for both policies.
+- Acceptance implemented: loading, error/retry, unpublished and content states; aborted requests and stale completions ignored; public navigation before login; native stack back navigation; safe areas and scalable text. Registration retains its existing consent checkbox and form state.
+- New behavior tests: PASS, 6 tests covering all routes, invalid/empty data, HTML text conversion, retry, cancellation/stale results and About policy navigation. Tests saved in tests/information.test.jsx because existing .gitignore excludes __tests__. Targeted ESLint PASS (existing AppNavigator warnings only); git diff --check PASS.
+- Android JavaScript bundle verification: `npx react-native bundle --platform android --dev true --entry-file index.js --bundle-output /tmp/himshaadi-information.android.bundle --assets-dest /tmp/himshaadi-information-assets` PASS; existing ReactNativeFeatureFlags exports fallback warning remains.
+- Full npm run lint FAIL: four existing duplicate style keys in WalletScreen. Full npm test -- --runInBand: five suites passed / two failed (existing MyProfileScreen text expectations and App.test React Navigation ESM parsing), 15 tests passed / two failed.
+- Android ./gradlew assembleDebug blocked during configuration by missing HIMSHAADI_UPLOAD_STORE_FILE release signing property; no signing changes made. Phone's installed com.himshaadi is a bundled build and retains the old Account menu. Installed legacy com.himrishteyapp could not load its script; returned phone to working com.himshaadi. New screen device smoke remains NOT VERIFIED until a new build can be installed; do not mark task complete from code alone.
+
+### T0.3 local DDEV connectivity — 2026-10-29
+
+- Corrected the user-selected HTTP API port from 8443 to 8080 for himrishtey-production.ddev.site; `adb -s 21cf0e18 reverse tcp:8080 tcp:80` forwards phone requests to the Mac DDEV router. Existing debug HTTP policy reused; no TLS trust, release policy, or backend changes.
+- Read-only `curl` GET /api/v1/profile with Accept and X-App-Code headers: HTTP 401 / Unauthenticated, confirming Laravel routing without credentials. HTTPS currently serves TRAEFIK DEFAULT CERT and fails certificate verification; no certificate checks bypassed.
+- `npx eslint src/config/api.js` and `git diff --check`: PASS. Restarted com.himshaadi; UI dump shows discovery cards. Authenticated local API behavior not verified; rendered cards alone do not establish backend origin. USB forwarding must be restored after reconnection. No build/test suite run for this URL-only change.
+
 ### T1.3 Supplied HimShaadi logo launcher icon — 2026-10-28
 
 - Prepared a square master from the user's red/pink circle and white wordmark using the imagegen skill; saved assets/branding/himshaadi-logo-icon.png and prompt/provenance in branding README. Replaced Android legacy/adaptive and iOS AppIcon PNGs; white adaptive background and centered safe-zone artwork. Previous wedding-knot source retained.
