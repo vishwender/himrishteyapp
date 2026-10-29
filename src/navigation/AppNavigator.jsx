@@ -35,7 +35,6 @@ import MyProfileScreen from '../screens/account/MyProfileScreen';
 import InformationScreen from '../screens/account/InformationScreen';
 import SettingsPrivacyScreen from '../screens/account/settings/SettingsPrivacyScreen';
 import ProfileVerificationScreen from '../screens/account/ProfileVerificationScreen';
-import ReportProfileScreen from '../screens/profile/ReportProfileScreen';
 import {INFORMATION_PAGES} from '../api/informationApi';
 
 const Stack = createNativeStackNavigator();
@@ -205,7 +204,6 @@ export default function AppNavigator() {
               component={ProfileVerificationScreen}
               options={{title: 'Profile Verification'}}
             />
-            <Stack.Screen name="ReportProfile" component={ReportProfileScreen} options={{title: 'Report Profile'}} />
 
             <Stack.Screen
               name="Membership"

@@ -10,10 +10,12 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AppIcon from './AppIcon';
+import ProfilePlaceholder from './ProfilePlaceholder';
 import colors from '../theme/colors';
 
 export default function ProfilePhoto({
   uri,
+  gender,
   style,
   accessibilityLabel = 'Profile photo',
   onError,
@@ -22,6 +24,7 @@ export default function ProfilePhoto({
   const [loading, setLoading] = useState(false);
   const [failed, setFailed] = useState(false);
   const [revision, setRevision] = useState(0);
+  const [failedThumbnail, setFailedThumbnail] = useState(null);
   useEffect(() => {
     setOpenedUri(null);
   }, [uri]);
@@ -45,15 +48,16 @@ export default function ProfilePhoto({
         accessibilityLabel={`Open ${accessibilityLabel.toLowerCase()}`}
         accessibilityHint="View the full image"
         onPress={open}
+        disabled={!uri || failedThumbnail === uri}
         activeOpacity={0.9}
       >
-        <Image
+        {uri && failedThumbnail !== uri ? <Image
           source={{ uri }}
           style={styles.thumbnail}
           resizeMode="cover"
-          onError={onError}
+          onError={event => {setFailedThumbnail(uri); onError?.(event);}}
           accessible={false}
-        />
+        /> : <ProfilePlaceholder gender={gender} />}
       </TouchableOpacity>
       {visible ? (
         <Modal

@@ -1,3 +1,4 @@
+import ProfileImage from '../../components/ProfileImage';
 import {useBottomTabBarHeight} from '@react-navigation/bottom-tabs';
 import AppIcon from '../../components/AppIcon';
 
@@ -9,7 +10,6 @@ import React, {
 import {
   View,
   Text,
-  Image,
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
@@ -70,14 +70,6 @@ export default function AccountScreen() {
   const imageURL = member?.photo
     ? getProfileImage(member.photo)
     : null;
-
-  const initials = String(member?.full_name || '?')
-    .trim()
-    .split(/\s+/)
-    .slice(0, 2)
-    .map(word => word.charAt(0))
-    .join('')
-    .toUpperCase();
 
   const location = [
     member?.city_living_in,
@@ -166,17 +158,7 @@ export default function AccountScreen() {
       <View style={styles.profileCard}>
         <View style={styles.profileHeader}>
           <View style={styles.avatarBox}>
-            {imageURL ? (
-              <Image
-                source={{ uri: imageURL }}
-                style={styles.avatar}
-                resizeMode="cover"
-              />
-            ) : (
-              <Text style={styles.initials}>
-                {initials}
-              </Text>
-            )}
+            <ProfileImage uri={imageURL} gender={member?.gender} style={styles.avatar} />
           </View>
 
           <View style={styles.profileInfo}>

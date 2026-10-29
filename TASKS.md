@@ -1,5 +1,64 @@
 # HimRishtey task checklist
 
+### T5.1 / T1.3 Report Profile modal — 2026-10-29
+
+- Replaced separate ReportProfile navigation screen with a transparent native modal mounted over Member Profile by the bottom report flag. Moved reusable form to components/ReportProfileModal.jsx and removed obsolete navigator route. Same reporter name/email, reason, details and existing support API retained; dismiss/reopen resets form without leaving profile or losing scroll position.
+- Added fixed modal header/close icon, dimmed backdrop, bounded scrollable form, safe-area/keyboard handling, Android back dismissal and Done close on success. Closing is disabled during submission; existing lock, unmount cancellation, error retention and confirmed success retained. No live report submitted.
+- Targeted ESLint and git diff --check PASS (AppNavigator retains two existing warnings). `npm test -- --runInBand tests/reportProfile.test.jsx`: PASS, five tests now include transparent modal, close/back handling, pending-dismissal prevention and success Done. `./gradlew :app:assembleDebug -PreactNativeArchitectures=arm64-v8a`: PASS. Device keyboard/modal visual and full baseline checks not repeated.
+
+### T1.3 Member Profile name-card icons — 2026-10-29
+
+- Added shared outline user/location icons beside member name/age and location in the summary card. Text flexes and wraps; existing height/education/profession icons retained. Targeted MemberProfileScreen ESLint and git diff --check PASS. No tests/native/device checks repeated for this presentation-only change.
+
+### T1.3 profile action spacing — 2026-10-29
+
+- Raised Share/Like overlay bottom inset from 18 to 36 so buttons clear the name card's 20px upward overlap, leaving a 16px gap. Targeted ESLint and git diff --check PASS. No tests/native build repeated for style-only spacing change; device visual check pending.
+
+### T5.1 / T1.3 Member Profile Share and Like — 2026-10-29
+
+- Replaced image-overlay shortlist with matching round Share and Like buttons; existing footer Shortlist is retained. Share opens the native sheet with member name/profile ID for in-app search; no unverified public/deep link generated and no automatic message sent. Like supports initial status, like/unlike, read-only status retry, duplicate-submit guard, abort/stale completion handling and self-like disabled. Existing activity lists reload their authoritative state on focus.
+- Verified existing authenticated Laravel ProfileLikeController contracts in routes/api.php: GET/POST/DELETE /api/v1/profile-likes/{numericMemberId}, Bearer + X-App-Code, no request payload/pagination; success {success:true,data:{profile_id:2,liked:true|false}}. GET reads, POST sets liked=true, DELETE sets liked=false; self-like POST422, unauthenticated401. Client requires confirmed boolean, preserves server errors, and retries status after uncertain mutation instead of blindly toggling. No backend edits or real like mutations performed.
+- `npm test -- --runInBand tests/memberProfileActions.test.jsx`: PASS, four tests for authenticated contracts/validation, like/unlike and duplicate taps, failed status/retry, native share payload and self-like prohibition. Targeted ESLint/git diff --check PASS. `./gradlew :app:assembleDebug -PreactNativeArchitectures=arm64-v8a`: PASS. Full baseline and on-device share/like mutation checks not repeated; existing unrelated baseline failures remain.
+
+### T1.3 square-bottom placeholder portraits — 2026-10-29
+
+- Used built-in imagegen edits to extend both portraits' clothing/hair to square lower canvas edges, removing oval bottom silhouettes while retaining transparent upper backgrounds. Male cleanup removed an uneven bottom strip. Saved profile-male-square.png / profile-female-square.png, updated shared references/tests, retained earlier assets and recorded exact prompts in asset README.
+- Visual inspection and sips dimensions/alpha checks: PASS, both 1254×1254 with alpha. Targeted ESLint, placeholder/activity tests (six tests) and git diff --check: PASS. Native build/device visual checks not repeated for asset-only update.
+
+### T1.3 transparent placeholder portraits — 2026-10-29
+
+- Removed lavender circle/outer backgrounds from both supplied placeholder portraits using built-in imagegen background extraction. Saved profile-male-transparent.png and profile-female-transparent.png; originals retained. Updated shared placeholder references and asset tests; exact prompts/provenance saved in assets/placeholders/README.md.
+- Visually inspected both cutouts and confirmed 1254×1254 PNG alpha via sips. Targeted ESLint, placeholder/activity suites (six tests) and git diff --check: PASS. No native rebuild or device visual check repeated for asset-only update.
+
+### T1.3 supplied gender profile placeholders — 2026-10-29
+
+- Android `./gradlew :app:assembleDebug -PreactNativeArchitectures=arm64-v8a`: PASS, BUILD SUCCESSFUL.
+
+- Copied both user-supplied PNGs unchanged into assets/placeholders with source provenance README. Shared ProfilePlaceholder selects artwork for explicit male/M or female/F (case-insensitive), retains neutral icon for unknown/missing gender, and labels placeholders for accessibility. Uses contain to preserve circular artwork.
+- Applied missing/failed-photo fallbacks across Home (also used by Search), Activity cards, Member Profile, own Profile, Account, My Photos primary preview and both Discover header/menu avatars. ProfilePhoto retains the real-photo modal and disables opening missing/failed thumbnail placeholders. Failed URI state allows a newly supplied URI to load normally. No real member photos replaced/uploaded; privacy blur remains paused.
+- Targeted ESLint and git diff --check: PASS. `npm test -- --runInBand tests/profilePlaceholders.test.jsx tests/activityProfiles.test.jsx __tests__/DiscoverHeader.test.jsx`: PASS, three suites / seven tests. Updated prior activity initials assertion to neutral fallback. Android Metro bundle to /tmp/himshaadi-placeholders.bundle: PASS, 27 assets copied, existing feature-flags export warning remains. Device visual/full baseline checks not repeated.
+
+### T1.3 header Fast Refresh recovery — 2026-10-29
+
+- Connected-device ReactNativeJS log confirmed the header change removed useId while Fast Refresh retained the previous hook state, producing a hook-order / “Should have a queue” render error. Force-stopped and relaunched com.himshaadi without clearing app data.
+- Phone smoke on 21cf0e18: Discover screen and profile cards render; screenshot confirms continuous purple status/brand area and white categories/list surface. New process ReactNativeJS/AndroidRuntime log contains normal app startup and no render errors. No further application source change required.
+
+### T1.3 continuous Discover header — 2026-10-29
+
+- Matched the Discover brand header to the purple safe-area/status-bar background by removing its separate gradient overlay. Unified the categories, section heading and member-list background in white; removed category-panel divider borders and moved list spacing into content padding. Existing category swipes, profile menu and list logic retained.
+- `./node_modules/.bin/eslint src/components/home/DiscoverHeader.jsx src/screens/home/HomeScreen.jsx`: PASS. `npm test -- --runInBand --watchman=false --cacheDirectory=/private/tmp/smooth-header-jest __tests__/DiscoverHeader.test.jsx tests/swipeCategories.test.jsx`: PASS, two suites/six tests. `git diff --check`: PASS. Visual-only change; Android build and phone visual smoke not run. Acceptance still requires phone review of status-bar/header continuity and category-to-list transition.
+
+### T1.3 smoother home swipe transitions — 2026-10-29
+
+- Replaced release-time category snapping with native-driver eased slide-out/fade, then slide-in/fade after the new category commits. Drag tracks farther with the finger; repeated swipes during animation cannot skip categories. Unmount stops animation. Existing vertical-scroll and boundary handling retained.
+- Targeted ESLint and git diff --check: PASS. `npm test -- --runInBand tests/swipeCategories.test.jsx`: PASS, five tests including delayed category change and duplicate-gesture protection. No native changes/build repeated. Test app restarted to discard stale Fast Refresh animation state; qualitative smoothness remains subject to user review.
+
+### T1.3 home category swipe navigation — 2026-10-29
+
+- Added native PanResponder/Animated horizontal swiping over the home profile list. Matches is the initial selection; left advances Matches → Recent → Verified → Near Me, right reverses. Selected category and existing per-category lazy loading/cache/pagination remain synchronized through selectedTab. Existing tab taps remain available. Vertical gestures/taps/multi-touch are not captured; short drags snap back, intentional flicks advance, endpoints do not wrap. No dependency or API changes; photo privacy feature remains paused.
+- Targeted ESLint and git diff --check: PASS. `npm test -- --runInBand tests/swipeCategories.test.jsx`: PASS, four gesture behavior tests for direction, vertical/tap/multi-touch exclusion, thresholds and boundaries. `./gradlew :app:assembleDebug -PreactNativeArchitectures=arm64-v8a`: PASS. Full lint/Jest not repeated; previously documented unrelated baseline failures remain.
+- Phone smoke on 21cf0e18 after restoring Metro/API USB forwards and restarting test app: initial Matches for You, left swipe → Recently Joined → Verified Profiles → Near Me; right swipe → Verified Profiles confirmed via UI headings. No account mutations. Large-font/rotation and extended pagination interactions not separately tested.
+
 ### T1.3 Report Profile placement — 2026-10-29
 
 - Moved existing Report Profile flag from summary to end of scrollable member profile, after details/status messages and above the fixed action bar. Navigation unchanged. Targeted MemberProfileScreen ESLint and git diff --check: PASS. No native/device checks repeated for placement-only change.

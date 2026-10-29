@@ -1,6 +1,7 @@
 import {useBottomTabBarHeight} from '@react-navigation/bottom-tabs';
 import AppIcon from '../../components/AppIcon';
 import DiscoverHeader from '../../components/home/DiscoverHeader';
+import SwipeCategories from '../../components/home/SwipeCategories';
 import {checkSentInterest} from '../../api/interestApi';
 import {checkShortlist} from '../../api/shortlistApi';
 import React, {
@@ -167,6 +168,12 @@ export default function HomeScreen() {
   }, []));
 
   const [selectedTab, setSelectedTab] = useState('matches');
+  const swipeCategory = useCallback(direction => {
+    setSelectedTab(previous => {
+      const index = TABS.findIndex(tab => tab.id === previous);
+      return TABS[Math.max(0, Math.min(TABS.length - 1, index + direction))].id;
+    });
+  }, []);
 
   const [tabStates, setTabStates] = useState(
     createInitialState,
@@ -963,6 +970,11 @@ export default function HomeScreen() {
       <DiscoverHeader navigation={navigation} />
     <View style={styles.container}>
       {renderCategories()}
+    <SwipeCategories
+      pageKey={selectedTab}
+      onSwipe={swipeCategory}
+      canSwipeNext={selectedTab !== TABS[TABS.length - 1].id}
+      canSwipePrevious={selectedTab !== TABS[0].id}>
     <FlatList
       onLayout={event => setListHeight(event.nativeEvent.layout.height)}
       key={selectedTab}
@@ -1014,6 +1026,7 @@ export default function HomeScreen() {
       maxToRenderPerBatch={6}
       windowSize={7}
     />
+    </SwipeCategories>
     </View>
     </SafeAreaView>
   );
@@ -1029,7 +1042,7 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
     overflow: 'hidden',
-    backgroundColor: colors.background,
+    backgroundColor: colors.white,
   },
 
   membersList: {
@@ -1037,6 +1050,7 @@ const styles = StyleSheet.create({
   },
 
   listContent: {
+    paddingTop: 12,
     paddingHorizontal: 14,
     paddingBottom: 28,
     flexGrow: 1,
@@ -1113,14 +1127,9 @@ const styles = StyleSheet.create({
   },
 
   discoveryPanel: {
-
     overflow: 'hidden',
-    marginBottom: 12,
     paddingTop: 10,
     paddingBottom: 10,
-    borderTopWidth: 1,
-    borderBottomWidth: 1,
-    borderColor: colors.border,
     backgroundColor: colors.white,
   },
 

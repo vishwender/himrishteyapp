@@ -1,3 +1,6 @@
+import ReportProfileModal from '../../components/ReportProfileModal';
+import MemberProfileActions from '../../components/MemberProfileActions';
+import ProfilePlaceholder from '../../components/ProfilePlaceholder';
 import ProfilePhoto from '../../components/ProfilePhoto';
 import {isVerifiedMember} from '../../services/memberVerification';
 import AppIcon from '../../components/AppIcon';
@@ -105,6 +108,7 @@ export default function MemberProfileScreen({ route, navigation }) {
 
   const profileId = route?.params?.profileId;
   const [member, setMember] = useState(null);
+  const [reportOpen, setReportOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -135,6 +139,7 @@ export default function MemberProfileScreen({ route, navigation }) {
       setLoading(true);
       setError('');
       setMember(null);
+      setReportOpen(false);
       setShortlisted(false);
       setShortlistLoading(true);
       setShortlistError('');
@@ -376,37 +381,31 @@ export default function MemberProfileScreen({ route, navigation }) {
 
   return (
     <View style={styles.screen}>
+      {reportOpen ? <ReportProfileModal profileId={member.profile_id} onClose={() => setReportOpen(false)} /> : null}
       <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <View style={styles.hero}>
           {photo ? (
-            <ProfilePhoto uri={photo} style={styles.heroPhoto} accessibilityLabel="Member profile photo" />
+            <ProfilePhoto gender={member?.gender} uri={photo} style={styles.heroPhoto} accessibilityLabel="Member profile photo" />
           ) : (
-            <View style={styles.noPhoto}><AppIcon name="user" style={styles.noPhotoIcon} /><Text style={styles.noPhotoText}>Photo not available</Text></View>
+            <ProfilePlaceholder gender={member?.gender} style={styles.heroPhoto} />
           )}
           <View style={styles.photoTopRow} pointerEvents="none">
             {isVerifiedMember(member) ? <View style={styles.verifyBadge}><Text style={styles.verifyText}>Verified Profile</Text></View> : <View />}
             <View style={styles.idBadge}><Text style={styles.idText}>{display(member.profile_id)}</Text></View>
           </View>
-          <TouchableOpacity
-            style={[styles.likeButton, shortlisted && styles.likeButtonActive, shortlistDisabled && styles.disabledAction]}
-            onPress={toggleShortlist}
-            disabled={shortlistDisabled}
-            accessibilityRole="button"
-            accessibilityLabel={shortlisted ? 'Remove from shortlist' : 'Shortlist profile'}
-            accessibilityHint="Save this member to your shortlist"
-            activeOpacity={0.85}>
-            {shortlistLoading || shortlistSaving ? (
-              <ActivityIndicator size="small" color={colors.primary} />
-            ) : (
-              <AppIcon name={shortlisted ? "saved" : "bookmark"} size={24} />
-            )}
-          </TouchableOpacity>
+          <MemberProfileActions key={member.id} member={member} />
         </View>
 
         <View style={styles.body}>
           <View style={styles.summaryCard}>
-            <Text style={styles.memberName}>{display(member.full_name) || 'Member'}{age !== null ? `, ${age}` : ''}</Text>
-            <Text style={styles.location}>{location ? `${location}` : 'Location not specified'}</Text>
+            <View style={styles.nameRow}>
+              <AppIcon name="user" size={22} style={styles.nameIcon} />
+              <Text style={styles.memberName}>{display(member.full_name) || 'Member'}{age !== null ? `, ${age}` : ''}</Text>
+            </View>
+            <View style={styles.locationRow}>
+              <AppIcon name="location" size={16} color={colors.textSecondary} style={styles.locationIcon} />
+              <Text style={styles.location}>{location || 'Location not specified'}</Text>
+            </View>
 
             <View style={styles.statsRow}>
               <StatPill icon="height" label="Height" value={member.height} />
@@ -580,7 +579,7 @@ export default function MemberProfileScreen({ route, navigation }) {
               accessibilityRole="button"
               accessibilityLabel="Report Profile"
               style={styles.reportButton}
-              onPress={() => navigation.navigate('ReportProfile', {profileId: member.profile_id})}>
+              onPress={() => setReportOpen(true)}>
               <AppIcon name="flag" size={17} color={colors.error} />
               <Text style={styles.reportText}>Report Profile</Text>
             </TouchableOpacity>
@@ -644,14 +643,14 @@ const styles = StyleSheet.create({
   verifyText: { color: colors.white, fontWeight: '800', fontSize: 11 },
   idBadge: { backgroundColor: 'rgba(17,25,54,0.72)', borderRadius: 18, paddingHorizontal: 10, paddingVertical: 7 },
   idText: { color: colors.white, fontSize: 11, fontWeight: '700' },
-  likeButton: { position: 'absolute', right: 16, bottom: 18, width: 46, height: 46, borderRadius: 23, backgroundColor: colors.white, justifyContent: 'center', alignItems: 'center', elevation: 3 },
-  likeButtonActive: { backgroundColor: colors.primaryLight },
-  likeIcon: { fontSize: 31, color: colors.primary, lineHeight: 37 },
-  likeIconActive: { color: colors.primary },
   body: { paddingHorizontal: 14 },
   summaryCard: { backgroundColor: colors.white, borderRadius: 20, padding: 17, marginTop: -20, borderWidth: 1, borderColor: colors.border, marginBottom: 14 },
-  memberName: { fontSize: 23, fontWeight: '800', color: colors.text },
-  location: { fontSize: 12, color: colors.textSecondary, marginTop: 7, lineHeight: 18 },
+  nameRow: {flexDirection: 'row', alignItems: 'flex-start', gap: 8},
+  nameIcon: {marginTop: 4},
+  memberName: { flex: 1, fontSize: 23, fontWeight: '800', color: colors.text },
+  locationRow: {flexDirection: 'row', alignItems: 'flex-start', gap: 8, marginTop: 7},
+  locationIcon: {marginTop: 1},
+  location: { flex: 1, fontSize: 12, color: colors.textSecondary, lineHeight: 18 },
   statsRow: { flexDirection: 'row', gap: 8, marginTop: 17 },
   statPill: { flex: 1, minWidth: 0, backgroundColor: colors.primaryLight, borderRadius: 11, paddingHorizontal: 6, paddingVertical: 11, alignItems: 'center' },
   statIcon: { fontSize: 17, marginBottom: 5 },

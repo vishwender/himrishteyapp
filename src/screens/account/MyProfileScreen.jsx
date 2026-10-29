@@ -1,3 +1,4 @@
+import ProfilePlaceholder from '../../components/ProfilePlaceholder';
 import React, { useCallback, useRef, useState } from 'react';
 import {
   ActivityIndicator,
@@ -272,16 +273,14 @@ export default function MyProfileScreen({ navigation }) {
         <View style={styles.hero}>
           {photo && failedPhoto !== photo ? (
             <ProfilePhoto
+              gender={member?.gender}
               uri={photo}
               style={styles.photo}
               accessibilityLabel="Your profile photo"
               onError={() => setFailedPhoto(photo)}
             />
           ) : (
-            <View style={styles.noPhoto}>
-              <AppIcon name="user" size={60} />
-              <Text style={styles.empty}>Photo not available</Text>
-            </View>
+            <ProfilePlaceholder gender={member?.gender} style={styles.photo} />
           )}
           {member.profile_id ? (
             <View style={styles.idBadge} pointerEvents="none">

@@ -1,16 +1,16 @@
 import React, {useEffect, useRef, useState} from 'react';
-import {ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View} from 'react-native';
+import {ActivityIndicator, KeyboardAvoidingView, Modal, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
-import {useAuth} from '../../context/AuthContext';
-import {reportProfile} from '../../api/reportProfileApi';
-import colors from '../../theme/colors';
+import {useAuth} from '../context/AuthContext';
+import {reportProfile} from '../api/reportProfileApi';
+import colors from '../theme/colors';
+import AppIcon from './AppIcon';
 
 const reasons = ['Fake or misleading profile', 'Inappropriate content', 'Harassment or abusive behaviour', 'Spam or scam', 'Other'];
 
-export default function ReportProfileScreen({route, navigation}) {
+export default function ReportProfileModal({profileId, onClose}) {
   const {user} = useAuth();
   const member = user?.data?.member || user?.member || user;
-  const profileId = route.params?.profileId;
   const [name, setName] = useState(member?.full_name || '');
   const [email, setEmail] = useState(member?.email || '');
   const [reason, setReason] = useState('');
@@ -47,14 +47,22 @@ export default function ReportProfileScreen({route, navigation}) {
   };
 
   return (
-    <SafeAreaView style={styles.root} edges={['left', 'right', 'bottom']}>
-      <KeyboardAvoidingView style={styles.root} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-          <View style={styles.card}>
+    <Modal visible transparent animationType="fade" onRequestClose={() => {if (!lock.current) onClose();}}>
+    <SafeAreaView style={styles.root}>
+
+      <KeyboardAvoidingView style={styles.overlay} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        <View style={styles.panel} accessibilityViewIsModal>
+          <View style={styles.header}>
             <Text accessibilityRole="header" style={styles.title}>{success ? 'Report received' : 'Report Profile'}</Text>
+            <TouchableOpacity accessibilityRole="button" accessibilityLabel="Close report" accessibilityState={{disabled: busy}} disabled={busy} style={styles.close} onPress={onClose}>
+              <AppIcon name="close" size={24} color={colors.textSecondary} />
+            </TouchableOpacity>
+          </View>
+        <ScrollView style={styles.scroll} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+          <View style={styles.card}>
             {success ? <>
               <Text style={styles.body}>Your concern about {profileId} has been sent to support.</Text>
-              <TouchableOpacity accessibilityRole="button" style={styles.button} onPress={() => navigation.goBack()}><Text style={styles.buttonText}>Done</Text></TouchableOpacity>
+              <TouchableOpacity accessibilityRole="button" style={styles.button} onPress={onClose}><Text style={styles.buttonText}>Done</Text></TouchableOpacity>
             </> : <>
               <Text style={styles.body}>Reporting profile {profileId}. Tell support what happened. Please avoid including passwords, payment details or identity documents.</Text>
               <Text style={styles.label}>Your name</Text>
@@ -70,16 +78,23 @@ export default function ReportProfileScreen({route, navigation}) {
             </>}
           </View>
         </ScrollView>
+        </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
+    </Modal>
   );
 }
 
 const styles = StyleSheet.create({
-  root: {flex: 1, backgroundColor: colors.background},
+  root: {flex: 1, backgroundColor: 'rgba(17, 25, 54, 0.55)'},
+  overlay: {flex: 1, justifyContent: 'center', alignItems: 'center', padding: 16},
+  panel: {width: '100%', maxWidth: 560, maxHeight: '92%', backgroundColor: colors.white, borderRadius: 20, overflow: 'hidden'},
+  header: {flexDirection: 'row', alignItems: 'center', paddingLeft: 20, paddingRight: 8, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border},
+  close: {minWidth: 48, minHeight: 56, alignItems: 'center', justifyContent: 'center'},
+  scroll: {flexGrow: 0},
   content: {padding: 20},
-  card: {padding: 20, backgroundColor: colors.white, borderRadius: 18},
-  title: {fontSize: 24, fontWeight: '800', color: colors.title},
+  card: {backgroundColor: colors.white},
+  title: {flex: 1, fontSize: 22, fontWeight: '800', color: colors.title},
   body: {fontSize: 15, lineHeight: 23, color: colors.textSecondary, marginTop: 12},
   label: {fontSize: 15, fontWeight: '600', color: colors.text, marginTop: 20, marginBottom: 8},
   input: {borderWidth: 1, borderColor: colors.border, borderRadius: 10, minHeight: 48, padding: 12, fontSize: 16, color: colors.text},

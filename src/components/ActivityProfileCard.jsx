@@ -1,5 +1,6 @@
-import React, {useState} from 'react';
-import {Image, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
+import React from 'react';
+import ProfileImage from './ProfileImage';
+import {StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import VerifiedBadge from './VerifiedBadge';
 import AppIcon from './AppIcon';
 import {getProfileImage} from '../config/images';
@@ -7,13 +8,10 @@ import colors from '../theme/colors';
 
 export default function ActivityProfileCard({member, description, activityIcon = 'activities', onOpenProfile, children}) {
   const imageURL = getProfileImage(member?.photo);
-  const [failedImage, setFailedImage] = useState(null);
   const name = member?.full_name?.trim() || 'Profile unavailable';
   const age = Number(member?.age);
   const displayName = Number.isInteger(age) && age > 0
     ? `${name}, ${age}` : name;
-  const initials = (member?.full_name?.trim() || '?').split(/\s+/)
-    .slice(0, 2).map(word => word[0]).join('').toUpperCase();
   const canOpen = Boolean(member?.profile_id && onOpenProfile);
 
   return (
@@ -27,9 +25,7 @@ export default function ActivityProfileCard({member, description, activityIcon =
         disabled={!canOpen}
         onPress={() => onOpenProfile(member.profile_id)}>
         <View style={styles.photoBox}>
-          {imageURL && failedImage !== imageURL ? (
-            <Image source={{uri: imageURL}} style={styles.photo} resizeMode="cover" onError={() => setFailedImage(imageURL)} accessible={false} />
-          ) : <Text style={styles.initials}>{initials}</Text>}
+          <ProfileImage uri={imageURL} gender={member?.gender} style={styles.photo} />
         </View>
         <View style={styles.info}>
           <Text style={styles.name}>{displayName}</Text>
