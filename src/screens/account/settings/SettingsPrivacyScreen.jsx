@@ -10,6 +10,7 @@ const descriptions = {
   privacy: 'How your information is handled',
   terms: 'Terms and conditions for using HimShaadi',
   refund: 'Refund and cancellation policy',
+  childSafety: 'Adults-only use and reporting child safety concerns',
 };
 
 export default function SettingsPrivacyScreen({navigation}) {

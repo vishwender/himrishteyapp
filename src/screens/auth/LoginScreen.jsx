@@ -24,7 +24,7 @@ import colors from '../../theme/colors';
 export default function LoginScreen({navigation}) {
   const {width} = useWindowDimensions();
   const heroImageWidth = Math.max(1, width - 52);
-  const {signIn} = useAuth();
+  const {signIn, accessError} = useAuth();
 
   const [loginMode, setLoginMode] = useState('password');
   const [identifier, setIdentifier] = useState('');
@@ -117,8 +117,11 @@ export default function LoginScreen({navigation}) {
           </Text>
 
           <Text style={styles.brandSubtitle}>
-            Himachali Matrimonial
+            Himachali Matrimonial · Adults 18+
           </Text>
+          {accessError ? (
+            <Text accessibilityRole="alert" style={styles.accessError}>{accessError}</Text>
+          ) : null}
 
           <Image
             source={require('../../assets/images/login-couple.png')}
@@ -270,6 +273,7 @@ export default function LoginScreen({navigation}) {
             ['about', 'About'],
             ['privacy', 'Privacy Policy'],
             ['terms', 'Terms of Use'],
+            ['childSafety', 'Child Safety Standards'],
           ].map(([page, title]) => (
             <TouchableOpacity key={page} accessibilityRole="button" style={styles.informationLink} onPress={() => navigation.navigate('Information', {page})}>
               <Text style={styles.registerLink}>{title}</Text>
@@ -310,6 +314,7 @@ const styles = StyleSheet.create({
   brandAccent: {
     color: colors.primary,
   },
+  accessError: {color: colors.error, fontSize: 15, lineHeight: 23, marginTop: 16},
   brandSubtitle: {
     color: colors.textSecondary,
     fontSize: 14,

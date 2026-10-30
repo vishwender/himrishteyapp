@@ -6,7 +6,7 @@ import {reportProfile} from '../api/reportProfileApi';
 import colors from '../theme/colors';
 import AppIcon from './AppIcon';
 
-const reasons = ['Fake or misleading profile', 'Inappropriate content', 'Harassment or abusive behaviour', 'Spam or scam', 'Other'];
+const reasons = ['Child safety or exploitation', 'Suspected underage member', 'Fake or misleading profile', 'Inappropriate content', 'Harassment or abusive behaviour', 'Spam or scam', 'Other'];
 
 export default function ReportProfileModal({profileId, onClose}) {
   const {user} = useAuth();

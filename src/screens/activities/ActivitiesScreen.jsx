@@ -21,6 +21,7 @@ const rows = [
   ['sent', 'Interests Sent', 'Track your requests', 'send'],
   ['likes', 'Likes', 'Liked profiles and people who liked you', 'heart'],
   ['shortlisted', 'Shortlisted Profiles', 'Your saved matches', 'bookmark'],
+  ['contacts', 'Contacts Viewed', 'Contact details you have unlocked', 'lock'],
 ];
 
 export default function ActivitiesScreen({ navigation }) {
@@ -63,11 +64,11 @@ export default function ActivitiesScreen({ navigation }) {
       navigation.navigate('ActivityLikes');
       return;
     }
-    if (key === 'viewers' || key === 'shortlisted') {
+    if (key === 'viewers' || key === 'shortlisted' || key === 'contacts') {
       navigation.navigate('ActivityProfiles', {
-        section: key === 'viewers' ? 'viewed_you' : 'shortlisted',
+        section: key === 'contacts' ? 'contacts_viewed' : key === 'viewers' ? 'viewed_you' : 'shortlisted',
         title:
-          key === 'viewers' ? 'Who Viewed My Profile' : 'Shortlisted Profiles',
+          key === 'contacts' ? 'Contacts Viewed' : key === 'viewers' ? 'Who Viewed My Profile' : 'Shortlisted Profiles',
       });
     } else navigation.navigate('ActivityInterests', { tab: key });
   };

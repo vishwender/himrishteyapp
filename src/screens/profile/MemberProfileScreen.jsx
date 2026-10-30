@@ -1,3 +1,4 @@
+import MemberContactDetails from '../../components/MemberContactDetails';
 import ReportProfileModal from '../../components/ReportProfileModal';
 import MemberProfileActions from '../../components/MemberProfileActions';
 import ProfilePlaceholder from '../../components/ProfilePlaceholder';
@@ -341,29 +342,6 @@ export default function MemberProfileScreen({ route, navigation }) {
     ]);
   }, [member?.id, interest?.interest?.id, interest?.interest?.status, interestLoading, interestSaving, interestError]);
 
-  const handleUnlockContact = useCallback(() => {
-    // Never reveal contact details from the ordinary profile response.
-    // A future backend endpoint must authorize and record contact unlocks.
-    Alert.alert(
-      'Contact Details Locked',
-      'Contact unlocking is not connected yet. Contact information will remain hidden until the server confirms access.',
-      [
-        { text: 'OK', style: 'cancel' },
-        {
-          text: 'View Membership Plans',
-          onPress: () => {
-            const parent = navigation?.getParent?.();
-            if (parent?.navigate) {
-              parent.navigate('Membership');
-            } else {
-              navigation?.navigate?.('Membership');
-            }
-          },
-        },
-      ],
-    );
-  }, [navigation]);
-
   const age = useMemo(() => getAge(member?.birth_date_time), [member?.birth_date_time]);
   const location = useMemo(() => [member?.city_living_in, member?.state_living_in, member?.country_living_in].map(display).filter(Boolean).join(', '), [member?.city_living_in, member?.state_living_in, member?.country_living_in]);
 
@@ -546,32 +524,7 @@ export default function MemberProfileScreen({ route, navigation }) {
             ]}
           />
 
-          <View style={styles.sectionCard}>
-            <View style={styles.sectionHeading}>
-              <View style={styles.sectionIcon}><AppIcon name="lock" style={styles.sectionIconText} /></View>
-              <Text style={styles.sectionTitle}>Contact Details</Text>
-            </View>
-            <Text style={styles.contactNote}>
-              Contact details are private. Unlock access to view this member's contact information.
-            </Text>
-            <View style={styles.lockedRow}>
-              <Text style={styles.lockedLabel}>Phone Number</Text>
-              <Text style={styles.lockedValue}>••••••••••</Text>
-            </View>
-            <View style={styles.lockedRow}>
-              <Text style={styles.lockedLabel}>Email Address</Text>
-              <Text style={styles.lockedValue}>••••••@••••</Text>
-            </View>
-            <TouchableOpacity
-              style={styles.unlockButton}
-              activeOpacity={0.85}
-              onPress={handleUnlockContact}>
-              <Text style={styles.unlockButtonText}>Unlock Contact Details</Text>
-            </TouchableOpacity>
-            <Text style={styles.unlockHint}>
-              Unlocking requires server-side authorization; details are not shown yet.
-            </Text>
-          </View>
+          <MemberContactDetails memberId={member.id} navigation={navigation} />
 
           {interestError ? <View style={styles.errorBox}><Text style={styles.errorText}>{interestError}</Text><TouchableOpacity onPress={retryInterest} disabled={interestLoading}><Text style={styles.retry}>Retry Interest Status</Text></TouchableOpacity></View> : null}
           {shortlistError ? <View style={styles.errorBox}><Text style={styles.errorText}>{shortlistError}</Text><TouchableOpacity onPress={retryShortlist} disabled={shortlistLoading}><Text style={styles.retry}>Retry Shortlist Status</Text></TouchableOpacity></View> : null}

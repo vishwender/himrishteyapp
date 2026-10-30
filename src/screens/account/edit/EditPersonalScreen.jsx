@@ -1,3 +1,4 @@
+import {ADULT_ACCESS_MESSAGE, isAdultBirthDate} from '../../../features/safety/adultAccess';
 import {
     HEIGHT_OPTIONS,
     heightLabel,
@@ -276,6 +277,11 @@ export default function EditPersonalScreen() {
 
         if (Object.keys(changed).length === 0) {
             Alert.alert('No Changes', 'You have not changed any details.');
+            return;
+        }
+
+        if ('birth_date_time' in changed && !isAdultBirthDate(changed.birth_date_time)) {
+            Alert.alert('Adults Only', ADULT_ACCESS_MESSAGE);
             return;
         }
 

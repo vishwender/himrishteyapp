@@ -310,6 +310,15 @@ export default function AccountScreen() {
         <View style={styles.divider} />
 
         <AccountItem
+          icon="verified"
+          title="Child Safety Standards"
+          subtitle="Adults-only use and reporting child safety concerns"
+          onPress={() => navigation.navigate('Information', {page: 'childSafety'})}
+        />
+
+        <View style={styles.divider} />
+
+        <AccountItem
           icon="eye"
           title="Profile Visibility"
           subtitle="Show or hide your matrimonial profile"

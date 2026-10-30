@@ -1,3 +1,5 @@
+import {ADULT_ACCESS_MESSAGE, isAdultBirthDate} from '../safety/adultAccess';
+
 const HEIGHTS = Array.from({ length: 37 }, (_, index) => {
   const inches = 48 + index;
   return `${Math.floor(inches / 12)} ft ${inches % 12} in`;
@@ -141,6 +143,8 @@ export function validateRegistrationStep(step, values) {
       parsed > new Date()
     ) {
       errors.birth_date_time = 'Enter a valid date of birth.';
+    } else if (!isAdultBirthDate(date)) {
+      errors.birth_date_time = ADULT_ACCESS_MESSAGE;
     }
     if (values.agreed_to_terms !== true)
       errors.agreed_to_terms = 'Please agree to the Terms and Conditions.';

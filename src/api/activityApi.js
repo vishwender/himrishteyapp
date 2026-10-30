@@ -34,6 +34,7 @@ export async function getActivityCounts() {
   return {
     counts: {
       viewers: count(value(0)?.profile_views),
+      contacts: count(value(0)?.contacts_viewed),
       received: Array.isArray(received) ? received.length : null,
       sent: Array.isArray(sent) ? sent.length : null,
       shortlisted: count(value(3)?.count),

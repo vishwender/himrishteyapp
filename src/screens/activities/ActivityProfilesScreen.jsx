@@ -82,16 +82,16 @@ export default function ActivityProfilesScreen({ route, navigation }) {
       }
       ListEmptyComponent={
         !loading && !error ? (
-          <Text style={styles.empty}>No profiles found.</Text>
+          <Text style={styles.empty}>{route.params.section === 'contacts_viewed' ? 'You have not unlocked any available contacts yet.' : 'No profiles found.'}</Text>
         ) : null
       }
       renderItem={({ item }) => (
         <ActivityProfileCard
           member={item}
-          activityIcon={route.params.section === 'shortlisted' ? 'bookmark'
+          activityIcon={route.params.section === 'contacts_viewed' ? 'lock' : route.params.section === 'shortlisted' ? 'bookmark'
             : ['liked_profiles', 'liked_you'].includes(route.params.section) ? 'heart' : 'eye'}
           description={
-            route.params.section === 'shortlisted' ? 'Shortlisted profile'
+            route.params.section === 'contacts_viewed' ? 'Contact details unlocked' : route.params.section === 'shortlisted' ? 'Shortlisted profile'
               : route.params.section === 'liked_profiles' ? 'You liked this profile'
                 : route.params.section === 'liked_you' ? 'Liked your profile'
                   : 'Viewed your profile'

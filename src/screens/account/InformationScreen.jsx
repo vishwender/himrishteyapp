@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import {ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
+import {ActivityIndicator, Alert, Linking, ScrollView, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {getInformationPage, INFORMATION_PAGES} from '../../api/informationApi';
 import AppIcon from '../../components/AppIcon';
@@ -28,6 +28,14 @@ export default function InformationScreen({route, navigation}) {
     return () => controller.abort();
   }, [key, attempt]);
 
+  const openPublishedStandards = async () => {
+    try {
+      await Linking.openURL(page.url);
+    } catch {
+      Alert.alert('Unable to open website', `Please try again or visit ${page.url} in your browser.`);
+    }
+  };
+
   return (
     <SafeAreaView style={styles.root} edges={['left', 'right', 'bottom']}>
       <ScrollView contentContainerStyle={styles.content}>
@@ -53,9 +61,18 @@ export default function InformationScreen({route, navigation}) {
             <Text selectable style={styles.body}>{state.content || 'This page has not been published yet. Please check again later.'}</Text>
           )}
         </View>
+        {key === 'childSafety' ? (
+          <View style={styles.card}>
+            <TouchableOpacity accessibilityRole="link" style={styles.link} onPress={openPublishedStandards}>
+              <Text style={styles.linkText}>View published Child Safety Standards</Text>
+              <AppIcon name="next" />
+            </TouchableOpacity>
+            <Text selectable style={styles.body}>{page.url}</Text>
+          </View>
+        ) : null}
         {key === 'about' ? (
           <View style={styles.card}>
-            {['privacy', 'terms', 'refund'].map(item => (
+            {['privacy', 'terms', 'refund', 'childSafety'].map(item => (
               <TouchableOpacity key={item} accessibilityRole="button" style={styles.link} onPress={() => navigation.push('Information', {page: item, title: INFORMATION_PAGES[item].title})}>
                 <Text style={styles.linkText}>{INFORMATION_PAGES[item].title}</Text>
                 <AppIcon name="next" />

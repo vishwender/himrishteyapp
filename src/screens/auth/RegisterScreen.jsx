@@ -439,9 +439,13 @@ export default function RegisterScreen({ navigation }) {
             ) : null}
             {step === 3 ? (
               <View style={styles.terms}>
+                <Text style={styles.description}>
+                  HimShaadi is for adults aged 18 and over. If you create a profile
+                  for someone else, both you and that person must be at least 18.
+                </Text>
                 <TouchableOpacity
                   accessibilityRole="checkbox"
-                  accessibilityLabel="I agree to the Terms and Conditions"
+                  accessibilityLabel="I am at least 18 and agree to the Terms and Conditions"
                   accessibilityState={{
                     checked: values.agreed_to_terms === true,
                     disabled: busy || uncertain || accountDetailsLocked,
@@ -470,7 +474,7 @@ export default function RegisterScreen({ navigation }) {
                     </Text>
                   </View>
                   <Text style={styles.agreementText}>
-                    I agree to the Terms and Conditions
+                    I am at least 18 and agree to the Terms and Conditions
                   </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
