@@ -72,6 +72,18 @@ def enableProguardInReleaseBuilds = false
  */
 def jscFlavor = 'io.github.react-native-community:jsc-android:2026004.+'
 
+def releaseSigningAvailable = ['HIMSHAADI_UPLOAD_STORE_FILE', 'HIMSHAADI_UPLOAD_STORE_PASSWORD',
+    'HIMSHAADI_UPLOAD_KEY_ALIAS', 'HIMSHAADI_UPLOAD_KEY_PASSWORD']
+        .every { project.hasProperty(it) }
+
+gradle.taskGraph.whenReady { graph ->
+    if (!releaseSigningAvailable && graph.allTasks.any {
+        it.project == project && it.name.toLowerCase().contains('release')
+    }) {
+        throw new GradleException('Release builds require the HIMSHAADI_UPLOAD signing properties.')
+    }
+}
+
 android {
     ndkVersion rootProject.ext.ndkVersion
     buildToolsVersion rootProject.ext.buildToolsVersion
@@ -93,10 +105,14 @@ android {
             keyPassword 'android'
         }
         release {
-            storeFile file(HIMSHAADI_UPLOAD_STORE_FILE)
-            storePassword HIMSHAADI_UPLOAD_STORE_PASSWORD
-            keyAlias HIMSHAADI_UPLOAD_KEY_ALIAS
-            keyPassword HIMSHAADI_UPLOAD_KEY_PASSWORD
+            // Debug builds do not require private release signing properties.
+            // Release tasks are blocked above when these are unavailable.
+            if (releaseSigningAvailable) {
+                storeFile file(HIMSHAADI_UPLOAD_STORE_FILE)
+                storePassword HIMSHAADI_UPLOAD_STORE_PASSWORD
+                keyAlias HIMSHAADI_UPLOAD_KEY_ALIAS
+                keyPassword HIMSHAADI_UPLOAD_KEY_PASSWORD
+            }
         }
     }
 

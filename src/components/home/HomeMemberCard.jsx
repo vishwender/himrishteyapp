@@ -1,3 +1,4 @@
+import ProfilePlaceholder from '../ProfilePlaceholder';
 import AppIcon from '../AppIcon';
 import {isVerifiedMember} from '../../services/memberVerification';
 
@@ -221,9 +222,7 @@ export default function HomeMemberCard({
                 onError={() => setFailedPhoto(imageUrl)}
               />
             ) : (
-              <View style={styles.photoPlaceholder}>
-                <AppIcon name="user" style={styles.placeholderIcon} />
-              </View>
+              <ProfilePlaceholder gender={member?.gender} style={styles.photoPlaceholder} />
             )}
 
             {hasMatchPercentage ? (

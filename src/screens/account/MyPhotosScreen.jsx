@@ -1,4 +1,4 @@
-import AppIcon from '../../components/AppIcon';
+import ProfileImage from '../../components/ProfileImage';
 
 import React, { useState } from 'react';
 
@@ -224,15 +224,7 @@ export default function MyPhotosScreen() {
                 </Text>
 
                 <View style={styles.primaryPhotoBox}>
-                    {primaryPhotoUrl ? (
-                        <Image
-                            source={{ uri: primaryPhotoUrl }}
-                            style={styles.primaryPhoto}
-                            resizeMode="cover"
-                        />
-                    ) : (
-                        <AppIcon name="user" style={styles.placeholder} />
-                    )}
+                    <ProfileImage uri={primaryPhotoUrl} gender={member?.gender} style={styles.primaryPhoto} />
                 </View>
 
                 <TouchableOpacity

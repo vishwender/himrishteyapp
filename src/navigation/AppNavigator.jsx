@@ -32,6 +32,10 @@ import WalletScreen from '../screens/account/WalletScreen';
 import WalletTransactionsScreen from '../screens/account/WalletTransactionsScreen';
 import MainTabs from './MainTabs';
 import MyProfileScreen from '../screens/account/MyProfileScreen';
+import InformationScreen from '../screens/account/InformationScreen';
+import SettingsPrivacyScreen from '../screens/account/settings/SettingsPrivacyScreen';
+import ProfileVerificationScreen from '../screens/account/ProfileVerificationScreen';
+import {INFORMATION_PAGES} from '../api/informationApi';
 
 const Stack = createNativeStackNavigator();
 
@@ -190,6 +194,16 @@ export default function AppNavigator() {
                 headerShown: true,
               }}
             />
+            <Stack.Screen
+              name="SettingsPrivacy"
+              component={SettingsPrivacyScreen}
+              options={{title: 'Settings & Privacy'}}
+            />
+            <Stack.Screen
+              name="ProfileVerification"
+              component={ProfileVerificationScreen}
+              options={{title: 'Profile Verification'}}
+            />
 
             <Stack.Screen
               name="Membership"
@@ -227,6 +241,13 @@ export default function AppNavigator() {
             />
           </>
         )}
+        <Stack.Screen
+          name="Information"
+          component={InformationScreen}
+          options={({route}) => ({
+            title: INFORMATION_PAGES[route.params?.page]?.title || 'About Application',
+          })}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );

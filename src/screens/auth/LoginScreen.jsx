@@ -265,6 +265,17 @@ export default function LoginScreen({navigation}) {
           </View>
         </View>
 
+        <View style={styles.informationLinks}>
+          {[
+            ['about', 'About'],
+            ['privacy', 'Privacy Policy'],
+            ['terms', 'Terms of Use'],
+          ].map(([page, title]) => (
+            <TouchableOpacity key={page} accessibilityRole="button" style={styles.informationLink} onPress={() => navigation.navigate('Information', {page})}>
+              <Text style={styles.registerLink}>{title}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
         <Text style={styles.footer}>
           A beautiful beginning awaits you.
         </Text>
@@ -275,6 +286,8 @@ export default function LoginScreen({navigation}) {
 }
 
 const styles = StyleSheet.create({
+  informationLinks: {flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', paddingHorizontal: 20},
+  informationLink: {minHeight: 48, paddingHorizontal: 10, justifyContent: 'center'},
   root: {
     flex: 1,
     backgroundColor: colors.background,

@@ -1,17 +1,10 @@
-import React, { useEffect, useId, useState } from 'react';
-import Svg, {
-  Defs,
-  LinearGradient,
-  Polygon,
-  Rect,
-  Stop,
-} from 'react-native-svg';
+import ProfileImage from '../ProfileImage';
+import React, { useEffect, useState } from 'react';
 import { Bell } from 'lucide-react-native';
 import {
   Alert,
   ScrollView,
   useWindowDimensions,
-  Image,
   Modal,
   Pressable,
   StyleSheet,
@@ -36,11 +29,9 @@ export default function DiscoverHeader({ navigation }) {
   const [detailsLoading, setDetailsLoading] = useState(false);
   const [detailsError, setDetailsError] = useState(false);
   const [refreshAttempt, setRefreshAttempt] = useState(0);
-  const gradientId = `header-${useId().replace(/:/g, '')}`;
   const insets = useSafeAreaInsets();
   const [menuOpen, setMenuOpen] = useState(false);
   const [headerHeight, setHeaderHeight] = useState(80);
-  const [failedPhoto, setFailedPhoto] = useState(null);
   const photo = getProfileImage(member.photo);
   const activation = String(member.active ?? '')
     .trim()
@@ -151,21 +142,6 @@ export default function DiscoverHeader({ navigation }) {
       collapsable={false}
       style={styles.header}
     >
-      <View style={StyleSheet.absoluteFill} pointerEvents="none">
-        <Svg width="100%" height="100%" accessible={false}>
-          <Defs>
-            <LinearGradient id={gradientId} x1="0" y1="0" x2="1" y2="1">
-              <Stop offset="0" stopColor="#7149EB" />
-              <Stop offset="1" stopColor="#4F28C1" />
-            </LinearGradient>
-          </Defs>
-          <Rect width="100%" height="100%" fill={`url(#${gradientId})`} />
-          <Polygon
-            points="150,0 280,0 400,130 280,130"
-            fill="rgba(255,255,255,0.025)"
-          />
-        </Svg>
-      </View>
       <View style={styles.brandGroup}>
         <Text style={styles.brand}>HimShaadi</Text>
         <Text style={styles.tagline}>Find Your Perfect Match</Text>
@@ -196,15 +172,7 @@ export default function DiscoverHeader({ navigation }) {
         accessibilityState={{ expanded: menuOpen }}
       >
         <View style={styles.avatar}>
-          {photo && failedPhoto !== photo ? (
-            <Image
-              source={{ uri: photo }}
-              style={styles.photo}
-              onError={() => setFailedPhoto(photo)}
-            />
-          ) : (
-            <AppIcon name="user" size={24} color={colors.white} />
-          )}
+          <ProfileImage uri={photo} gender={member?.gender} style={styles.photo} />
         </View>
         <AppIcon name="expand" size={18} color={colors.white} />
       </TouchableOpacity>
@@ -237,11 +205,7 @@ export default function DiscoverHeader({ navigation }) {
             <ScrollView style={styles.menuScroll} bounces={false}>
               <View style={styles.identity}>
                 <View style={styles.menuAvatar}>
-                  {photo && failedPhoto !== photo ? (
-                    <Image source={{ uri: photo }} style={styles.photo} />
-                  ) : (
-                    <AppIcon name="user" size={23} />
-                  )}
+                  <ProfileImage uri={photo} gender={member?.gender} style={styles.photo} />
                 </View>
                 <View style={styles.identityText}>
                   <Text style={styles.name}>

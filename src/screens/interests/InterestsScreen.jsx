@@ -1,5 +1,5 @@
 // @refresh reset
-import VerifiedBadge from '../../components/VerifiedBadge';
+import ActivityProfileCard from '../../components/ActivityProfileCard';
 import {useBottomTabBarHeight} from '@react-navigation/bottom-tabs';
 import React, {
   useCallback,
@@ -12,7 +12,6 @@ import React, {
 import {
   View,
   Text,
-  Image,
   FlatList,
   TouchableOpacity,
   RefreshControl,
@@ -34,7 +33,6 @@ import {
   cancelInterest,
 } from '../../api/interestApi';
 import { notifyInterestChanged } from '../../services/interestSync';
-import { getProfileImage } from '../../config/images';
 import colors from '../../theme/colors';
 
 const STATUS_TABS = [
@@ -81,80 +79,19 @@ function InterestCard({
   busy,
 }) {
   const member = item.member;
-  const imageURL = getProfileImage(member?.photo);
-
-  const initials = (member?.full_name || '?')
-    .trim()
-    .split(/\s+/)
-    .slice(0, 2)
-    .map(word => word[0])
-    .join('')
-    .toUpperCase();
-
   const status = String(item.status);
   const pending = status === '0';
 
-  const location = [
-    member?.city_living_in,
-    member?.state_living_in,
-  ].filter(Boolean).join(', ');
-
-  const canOpen = Boolean(member?.profile_id);
-
   return (
-    <View style={styles.card}>
-      <TouchableOpacity
-        style={styles.profileRow}
-        activeOpacity={0.8}
-        disabled={!canOpen}
-        onPress={() => onOpenProfile(member.profile_id)}>
-
-        <View style={styles.photoBox}>
-          {imageURL ? (
-            <Image
-              source={{ uri: imageURL }}
-              style={styles.photo}
-              resizeMode="cover"
-            />
-          ) : (
-            <Text style={styles.initials}>
-              {initials}
-            </Text>
-          )}
-        </View>
-
-        <View style={styles.memberInfo}>
-          <Text
-            numberOfLines={1}
-            style={styles.memberName}>
-            {member?.full_name || 'Profile unavailable'}
-          </Text>
-          <VerifiedBadge member={member} />
-
-          <Text style={styles.profileId}>
-            {member?.profile_id || 'Unknown profile'}
-          </Text>
-
-          <Text
-            numberOfLines={1}
-            style={styles.location}>
-            {location || 'Location not specified'}
-          </Text>
-
-          <Text style={styles.direction}>
-            {status === '1'
-              ? 'Interest accepted'
-              : status === '2'
-                ? 'Interest rejected'
-                : pending
-                  ? item.direction === 'sent'
-                    ? 'Interest sent'
-                    : 'Interest received'
-                  : 'Interest status unavailable'}
-          </Text>
-        </View>
-      </TouchableOpacity>
-
+    <ActivityProfileCard
+      member={member}
+      activityIcon={status === '1' ? 'check' : status === '2' ? 'close'
+        : item.direction === 'sent' ? 'send' : 'heart'}
+      onOpenProfile={onOpenProfile}
+      description={status === '1' ? 'Interest accepted'
+        : status === '2' ? 'Interest rejected'
+          : pending ? item.direction === 'sent' ? 'Interest sent' : 'Interest received'
+            : 'Interest status unavailable'}>
       <View style={styles.statusRow}>
         <View style={[
           styles.statusBadge,
@@ -219,7 +156,7 @@ function InterestCard({
           color={colors.primary}
         />
       ) : null}
-    </View>
+    </ActivityProfileCard>
   );
 }
 
@@ -602,60 +539,6 @@ const styles = StyleSheet.create({
     padding: 16,
     paddingBottom: 35,
     flexGrow: 1,
-  },
-  card: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 14,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: '#EEEAF7',
-  },
-  profileRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  photoBox: {
-    width: 72,
-    height: 82,
-    borderRadius: 12,
-    backgroundColor: '#EDE9FF',
-    alignItems: 'center',
-    justifyContent: 'center',
-    overflow: 'hidden',
-  },
-  photo: {
-    width: '100%',
-    height: '100%',
-  },
-  initials: {
-    fontSize: 23,
-    fontWeight: '700',
-    color: colors.primary,
-  },
-  memberInfo: {
-    flex: 1,
-    paddingLeft: 14,
-  },
-  memberName: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: colors.text,
-  },
-  profileId: {
-    fontSize: 12,
-    color: colors.primary,
-    marginTop: 4,
-  },
-  location: {
-    fontSize: 12,
-    color: colors.textSecondary,
-    marginTop: 5,
-  },
-  direction: {
-    fontSize: 11,
-    color: colors.textSecondary,
-    marginTop: 5,
   },
   statusRow: {
     flexDirection: 'row',

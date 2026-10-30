@@ -7,7 +7,7 @@ import {
   ChevronUp, Pencil, Camera, LockKeyhole, Crown, Wallet, Settings,
   Trash2, LogOut, CalendarDays, Users, Leaf, Ruler, Check, X,
   Gift, ArrowDownLeft, ArrowUpRight, Circle, CircleCheck, Plus,
-  UserRoundPlus, ListChecks,
+  UserRoundPlus, ListChecks, Flag, Share2,
 } from 'lucide-react-native';
 import colors from '../theme/colors';
 
@@ -24,6 +24,8 @@ const icons = {
   credit: ArrowDownLeft, debit: ArrowUpRight, circle: Circle,
   selected: CircleCheck, plus: Plus,
   recentlyJoined: UserRoundPlus, activities: ListChecks,
+  flag: Flag,
+  share: Share2,
 };
 
 // Icons are decorative; their containing control owns its accessible label.
